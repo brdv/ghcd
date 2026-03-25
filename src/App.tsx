@@ -6,7 +6,7 @@ import Toolbar from "./components/Toolbar";
 import UserDetailModal from "./components/UserDetailModal";
 import { computeBadges } from "./lib/badges";
 import { getDatePresets } from "./lib/datePresets";
-import { gql, QUERY_ORG, QUERY_USER } from "./lib/github";
+import { fetchUserContributions, resolveOrgId } from "./lib/fetchContributions";
 import { DEFAULT_VISIBLE_STATS } from "./lib/stats";
 import { useToast } from "./lib/ToastContext";
 import type { GitHubUser, UserResult } from "./lib/types";
@@ -177,15 +177,9 @@ export default function App() {
     // Resolve org ID
     let orgId: string | null = null;
     if (orgName) {
-      try {
-        const d = await gql<{ organization?: { id: string } }>(token, QUERY_ORG, { org: orgName });
-        orgId = d.organization?.id ?? null;
-      } catch (e) {
-        addToast(
-          "warning",
-          `Could not resolve org "${orgName}": ${(e as Error).message}. Fetching without org filter.`,
-        );
-        orgId = null;
+      orgId = await resolveOrgId(token, orgName);
+      if (!orgId) {
+        addToast("warning", `Could not resolve org "${orgName}". Fetching without org filter.`);
       }
     }
 
@@ -194,13 +188,8 @@ export default function App() {
     await Promise.all(
       users.map(async (user) => {
         try {
-          const d = await gql<{ user: GitHubUser }>(token, QUERY_USER, {
-            user,
-            orgId,
-            from,
-            to,
-          });
-          setResults((prev) => ({ ...prev, [user]: { data: d.user } }));
+          const data = await fetchUserContributions(token, user, { orgId, from, to });
+          setResults((prev) => ({ ...prev, [user]: { data } }));
         } catch (e) {
           errorCount++;
           setResults((prev) => ({
@@ -227,6 +216,28 @@ export default function App() {
         );
       }
     });
+  }
+
+  async function fetchUser(username: string) {
+    const token = pat.trim();
+    if (!token) return;
+
+    const from = new Date(fromDate).toISOString();
+    const to = new Date(toDate).toISOString();
+
+    setResults((prev) => ({ ...prev, [username]: { loading: true } }));
+
+    const orgId = org.trim() ? await resolveOrgId(token, org.trim()) : null;
+
+    try {
+      const data = await fetchUserContributions(token, username, { orgId, from, to });
+      setResults((prev) => ({ ...prev, [username]: { data } }));
+    } catch (e) {
+      setResults((prev) => ({
+        ...prev,
+        [username]: { error: (e as Error).message },
+      }));
+    }
   }
 
   const badges = useMemo(() => computeBadges(results), [results]);
@@ -310,6 +321,7 @@ export default function App() {
         setToDate={setToDate}
         users={users}
         setUsers={setUsers}
+        onUserAdded={fetchUser}
         visibleStats={visibleStats}
         setVisibleStats={setVisibleStats}
       />

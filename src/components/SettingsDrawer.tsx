@@ -21,6 +21,7 @@ interface SettingsDrawerProps {
   setToDate: (v: string) => void;
   users: string[];
   setUsers: (v: string[]) => void;
+  onUserAdded: (username: string) => void;
   visibleStats: string[];
   setVisibleStats: (v: string[]) => void;
 }
@@ -38,6 +39,7 @@ export default function SettingsDrawer({
   setToDate,
   users,
   setUsers,
+  onUserAdded,
   visibleStats,
   setVisibleStats,
 }: SettingsDrawerProps) {
@@ -48,6 +50,7 @@ export default function SettingsDrawer({
     const u = userInput.trim().toLowerCase();
     if (u && !users.includes(u)) {
       setUsers([...users, u]);
+      onUserAdded(u);
     }
     setUserInput("");
   }
