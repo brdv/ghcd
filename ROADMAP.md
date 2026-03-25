@@ -29,7 +29,7 @@
 
 ### Data & Insights
 
-- [ ] **Current streak indicator on card** — show the current streak (not just longest) as a visible element on the main card, not just in the modal
+- [x] **Current streak indicator on card** — show the current streak (not just longest) as a visible element on the main card, not just in the modal
 - [ ] **Contribution velocity** — week-over-week change indicator (trending up/down arrow + percentage)
 - [ ] **Language breakdown** — fetch top languages per user from their repos and show as colored dots or a mini bar
 - [ ] **PR review turnaround** — average time between PR opened and first review (requires additional API data)
