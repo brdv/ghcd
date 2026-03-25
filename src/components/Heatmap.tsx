@@ -92,15 +92,14 @@ export default function Heatmap({ weeks }: HeatmapProps) {
 
   const handleMouseLeave = useCallback(() => setTooltip(null), []);
 
-  const handleClick = useCallback(
-    (e: React.MouseEvent<SVGSVGElement>) => {
-      const target = e.target as Element;
+  const toggleTooltip = useCallback(
+    (target: Element, stopPropagation: () => void) => {
       const dateVal = target.getAttribute("data-date");
       if (!dateVal) {
         setTooltip(null);
         return;
       }
-      e.stopPropagation();
+      stopPropagation();
       if (tooltip?.date === dateVal) {
         setTooltip(null);
       } else {
@@ -108,6 +107,22 @@ export default function Heatmap({ weeks }: HeatmapProps) {
       }
     },
     [showTooltipForTarget, tooltip?.date],
+  );
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      toggleTooltip(e.target as Element, () => e.stopPropagation());
+    },
+    [toggleTooltip],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<SVGSVGElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        toggleTooltip(e.target as Element, () => e.stopPropagation());
+      }
+    },
+    [toggleTooltip],
   );
 
   return (
@@ -123,6 +138,7 @@ export default function Heatmap({ weeks }: HeatmapProps) {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={handleClick}
+          onKeyDown={handleKeyDown}
         >
           {/* Month labels */}
           {monthLabels.map((m) => (
