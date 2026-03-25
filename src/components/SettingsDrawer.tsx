@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fetchOrgMembers } from "../lib/github";
 import { ALL_STATS } from "../lib/stats";
 import DatePresets from "./DatePresets";
 import UserChip from "./UserChip";
@@ -45,6 +46,7 @@ export default function SettingsDrawer({
 }: SettingsDrawerProps) {
   const [userInput, setUserInput] = useState("");
   const [patVisible, setPatVisible] = useState(false);
+  const [importingOrg, setImportingOrg] = useState(false);
 
   function addUser() {
     const u = userInput.trim().toLowerCase();
@@ -57,6 +59,22 @@ export default function SettingsDrawer({
 
   function removeUser(username: string) {
     setUsers(users.filter((x) => x !== username));
+  }
+
+  async function importOrgMembers() {
+    if (!pat.trim() || !org.trim()) return;
+    setImportingOrg(true);
+    try {
+      const members = await fetchOrgMembers(pat.trim(), org.trim());
+      const newUsers = members.filter((m) => !users.includes(m));
+      if (newUsers.length > 0) {
+        setUsers([...users, ...newUsers]);
+        for (const u of newUsers) onUserAdded(u);
+      }
+    } catch {
+      // Handled silently — org may not exist or PAT lacks scope
+    }
+    setImportingOrg(false);
   }
 
   return (
@@ -175,6 +193,20 @@ export default function SettingsDrawer({
                 Add
               </button>
             </div>
+            {org.trim() && pat.trim() && (
+              <button
+                type="button"
+                onClick={importOrgMembers}
+                disabled={importingOrg}
+                className={`text-xs font-medium transition-colors cursor-pointer bg-transparent border-none p-0 ${
+                  importingOrg
+                    ? "text-gh-text-secondary opacity-50"
+                    : "text-gh-accent hover:text-gh-accent-hover"
+                }`}
+              >
+                {importingOrg ? "Importing..." : `Import members from ${org.trim()}`}
+              </button>
+            )}
             {users.length > 0 && (
               <div className="flex gap-1.5 flex-wrap">
                 {users.map((u) => (

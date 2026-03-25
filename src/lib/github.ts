@@ -13,6 +13,15 @@ export const QUERY_USER = `query($user:String!,$orgId:ID,$from:DateTime!,$to:Dat
   }
 }`;
 
+const QUERY_ORG_MEMBERS = `query($org:String!,$cursor:String){
+  organization(login:$org){
+    membersWithRole(first:100,after:$cursor){
+      pageInfo{hasNextPage endCursor}
+      nodes{login}
+    }
+  }
+}`;
+
 export async function gql<T>(
   token: string,
   query: string,
@@ -34,4 +43,32 @@ export async function gql<T>(
     throw new Error(json.errors.map((e: { message: string }) => e.message).join(", "));
   }
   return json.data as T;
+}
+
+interface OrgMembersResponse {
+  organization: {
+    membersWithRole: {
+      pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      nodes: { login: string }[];
+    };
+  };
+}
+
+export async function fetchOrgMembers(token: string, org: string): Promise<string[]> {
+  const members: string[] = [];
+  let cursor: string | null = null;
+  let hasNext = true;
+
+  while (hasNext) {
+    const data: OrgMembersResponse = await gql(token, QUERY_ORG_MEMBERS, { org, cursor });
+    for (const node of data.organization.membersWithRole.nodes) {
+      members.push(node.login.toLowerCase());
+    }
+    const pageInfo: OrgMembersResponse["organization"]["membersWithRole"]["pageInfo"] =
+      data.organization.membersWithRole.pageInfo;
+    hasNext = pageInfo.hasNextPage;
+    cursor = pageInfo.endCursor;
+  }
+
+  return members;
 }
