@@ -4,6 +4,7 @@ export const QUERY_USER = `query($user:String!,$orgId:ID,$from:DateTime!,$to:Dat
   user(login:$user){avatarUrl contributionsCollection(organizationID:$orgId,from:$from,to:$to){
     totalCommitContributions totalPullRequestContributions totalPullRequestReviewContributions
     totalIssueContributions totalRepositoryContributions
+    commitContributionsByRepository{repository{nameWithOwner}}
     contributionCalendar{totalContributions weeks{contributionDays{date contributionCount contributionLevel weekday}}}
   }}
 }`;

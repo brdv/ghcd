@@ -10,7 +10,7 @@ export default function StatsBar({ collection }: StatsBarProps) {
     { value: collection.totalPullRequestContributions, label: "PRs" },
     { value: collection.totalPullRequestReviewContributions, label: "Reviews" },
     { value: collection.totalIssueContributions, label: "Issues" },
-    { value: collection.totalRepositoryContributions, label: "Repos" },
+    { value: collection.commitContributionsByRepository.length, label: "Repos" },
   ];
 
   return (

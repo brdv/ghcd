@@ -21,12 +21,19 @@ export interface ContributionCalendar {
   weeks: ContributionWeek[];
 }
 
+export interface CommitContributionsByRepository {
+  repository: {
+    nameWithOwner: string;
+  };
+}
+
 export interface ContributionsCollection {
   totalCommitContributions: number;
   totalPullRequestContributions: number;
   totalPullRequestReviewContributions: number;
   totalIssueContributions: number;
   totalRepositoryContributions: number;
+  commitContributionsByRepository: CommitContributionsByRepository[];
   contributionCalendar: ContributionCalendar;
 }
 

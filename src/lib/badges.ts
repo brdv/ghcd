@@ -47,8 +47,8 @@ const BADGE_DEFINITIONS: {
     id: "explorer",
     label: "Repo Ranger",
     icon: "repo",
-    tooltip: "Contributed to the most repositories in the selected period",
-    getValue: (r) => r.data?.contributionsCollection.totalRepositoryContributions ?? 0,
+    tooltip: "Active in the most repositories in the selected period",
+    getValue: (r) => r.data?.contributionsCollection.commitContributionsByRepository.length ?? 0,
   },
   {
     id: "most-active",
