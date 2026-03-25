@@ -39,7 +39,7 @@ export default function Heatmap({ weeks }: HeatmapProps) {
   }
 
   return (
-    <div className="overflow-x-auto mb-3.5">
+    <div className="overflow-x-auto mb-3.5 bg-gh-badge rounded-lg p-3">
       <svg
         width={width}
         className="max-w-full"
