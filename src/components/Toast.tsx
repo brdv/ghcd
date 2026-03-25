@@ -27,7 +27,11 @@ interface ToastContainerProps {
 
 export default function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm">
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm"
+    >
       {toasts.map((t) => (
         <ToastItem key={t.id} toast={t} onDismiss={() => onDismiss(t.id)} />
       ))}
@@ -50,6 +54,7 @@ function ToastItem({ toast, onDismiss }: { toast: ToastMessage; onDismiss: () =>
       <button
         type="button"
         onClick={onDismiss}
+        aria-label="Dismiss notification"
         className="bg-transparent border-none text-current opacity-60 hover:opacity-100 cursor-pointer text-base leading-none p-0"
       >
         &times;

@@ -247,7 +247,7 @@ export default function UserDetailModal({
             {/* Insights grid */}
             <div>
               <h3 className="text-sm font-medium text-gh-text-secondary mb-2">Insights</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <dl className="grid grid-cols-2 sm:grid-cols-4 gap-2 m-0">
                 <InsightCard label="Current Streak" value={`${insights.currentStreak}d`} />
                 <InsightCard label="Longest Streak" value={`${insights.longestStreak}d`} />
                 <InsightCard label="Daily Average" value={`${insights.dailyAverage}`} />
@@ -278,7 +278,7 @@ export default function UserDetailModal({
                     }
                   />
                 )}
-              </div>
+              </dl>
             </div>
 
             {/* Top repositories */}
@@ -346,9 +346,9 @@ export default function UserDetailModal({
 function InsightCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="flex flex-col items-center px-2 py-2.5 rounded-lg bg-gh-badge">
-      <span className="text-lg font-bold">{value}</span>
+      <dd className="text-lg font-bold m-0">{value}</dd>
       {sub && <span className="text-[10px] text-gh-text-secondary">{sub}</span>}
-      <span className="text-[11px] text-gh-text-secondary mt-0.5">{label}</span>
+      <dt className="text-[11px] text-gh-text-secondary mt-0.5">{label}</dt>
     </div>
   );
 }

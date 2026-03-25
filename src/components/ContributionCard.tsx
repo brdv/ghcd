@@ -25,7 +25,7 @@ export default function ContributionCard({
   visibleStats,
   onSelect,
 }: ContributionCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLElement>(null);
   const [avatarLoaded, setAvatarLoaded] = useState(false);
   const collection = result.data?.contributionsCollection;
   const totalContributions = collection?.contributionCalendar.totalContributions;
@@ -40,23 +40,19 @@ export default function ContributionCard({
     }
   }
 
+  const sharedClass = `bg-gh-card rounded-xl px-5 py-4 transition-colors duration-150 w-full text-left ${
+    hasStreak ? "streak-glow border border-transparent" : "border border-gh-border"
+  }`;
+
+  const Wrapper = isClickable ? "button" : "div";
+
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: role is conditionally set to "button" when clickable
-    <div
-      ref={cardRef}
-      className={`bg-gh-card rounded-xl px-5 py-4 transition-colors duration-150 ${
-        hasStreak ? "streak-glow border border-transparent" : "border border-gh-border"
-      } ${isClickable ? "cursor-pointer hover:border-gh-accent/50" : ""}`}
+    <Wrapper
+      ref={cardRef as React.Ref<HTMLButtonElement & HTMLDivElement>}
+      type={isClickable ? "button" : undefined}
+      aria-label={isClickable ? `View details for ${username}` : undefined}
+      className={`${sharedClass} ${isClickable ? "cursor-pointer hover:border-gh-accent/50" : ""}`}
       onClick={isClickable ? handleSelect : undefined}
-      onKeyDown={
-        isClickable
-          ? (e) => {
-              if (e.key === "Enter") handleSelect();
-            }
-          : undefined
-      }
-      role={isClickable ? "button" : undefined}
-      tabIndex={isClickable ? 0 : undefined}
     >
       {/* Header */}
       <div className="flex items-center gap-2.5 mb-3">
@@ -67,7 +63,7 @@ export default function ContributionCard({
           {result.data && (
             <img
               src={result.data.avatarUrl}
-              alt=""
+              alt={`${username}'s avatar`}
               className={`w-8 h-8 rounded-full transition-opacity duration-150 ${avatarLoaded ? "opacity-100" : "opacity-0"}`}
               onLoad={() => setAvatarLoaded(true)}
             />
@@ -77,7 +73,11 @@ export default function ContributionCard({
           <span className="font-semibold text-[15px]">
             {username}
             {hasStreak && (
-              <span className="ml-1 text-[13px]" title={`${currentStreak}d streak`}>
+              <span
+                className="ml-1 text-[13px]"
+                role="img"
+                aria-label={`${currentStreak} day streak`}
+              >
                 🔥
               </span>
             )}
@@ -104,7 +104,8 @@ export default function ContributionCard({
               <span
                 key={b.id}
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gh-badge text-[11px] text-gh-text-secondary border border-gh-border shrink-0"
-                title={b.tooltip}
+                role="img"
+                aria-label={b.tooltip}
               >
                 <BadgeIcon icon={b.icon} />
                 {b.label}
@@ -146,14 +147,18 @@ export default function ContributionCard({
           </div>
         </div>
       )}
-      {result.error && <div className="text-gh-danger text-[13px] py-3">{result.error}</div>}
+      {result.error && (
+        <div role="alert" className="text-gh-danger text-[13px] py-3">
+          {result.error}
+        </div>
+      )}
       {collection && (
         <>
           <Heatmap weeks={collection.contributionCalendar.weeks} />
           <StatsBar collection={collection} visibleStats={visibleStats} />
         </>
       )}
-    </div>
+    </Wrapper>
   );
 }
 

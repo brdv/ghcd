@@ -19,33 +19,42 @@ export default function DayOfWeekChart({ weeks }: DayOfWeekChartProps) {
 
   const max = Math.max(...totals, 1);
 
+  const description = DISPLAY_ORDER.map((i) => `${DAY_LABELS[i]}: ${totals[i]}`).join(", ");
+
   return (
-    <div className="flex items-end gap-1 justify-between mb-3 px-1">
-      {DISPLAY_ORDER.map((i) => (
-        <div key={DAY_LABELS[i]} className="flex flex-col items-center gap-1 flex-1">
-          <span className="text-[10px] text-gh-text-secondary font-medium">{totals[i]}</span>
-          <div
-            className="w-full rounded-sm bg-gh-badge overflow-hidden flex flex-col justify-end"
-            style={{ height: 32 }}
-          >
+    <figure className="m-0" role="img" aria-label={`Contributions by day of week. ${description}`}>
+      <div className="flex items-end gap-1 justify-between mb-3 px-1">
+        {DISPLAY_ORDER.map((i) => (
+          <div key={DAY_LABELS[i]} className="flex flex-col items-center gap-1 flex-1">
+            <span className="text-[10px] text-gh-text-secondary font-medium" aria-hidden="true">
+              {totals[i]}
+            </span>
             <div
-              className="w-full rounded-sm transition-all duration-300"
-              style={{
-                height: `${(totals[i] / max) * 100}%`,
-                background:
-                  totals[i] === max
-                    ? "var(--contrib-q4)"
-                    : totals[i] > max * 0.5
-                      ? "var(--contrib-q3)"
-                      : totals[i] > 0
-                        ? "var(--contrib-q2)"
-                        : "transparent",
-              }}
-            />
+              className="w-full rounded-sm bg-gh-badge overflow-hidden flex flex-col justify-end"
+              style={{ height: 32 }}
+              aria-hidden="true"
+            >
+              <div
+                className="w-full rounded-sm transition-all duration-300"
+                style={{
+                  height: `${(totals[i] / max) * 100}%`,
+                  background:
+                    totals[i] === max
+                      ? "var(--contrib-q4)"
+                      : totals[i] > max * 0.5
+                        ? "var(--contrib-q3)"
+                        : totals[i] > 0
+                          ? "var(--contrib-q2)"
+                          : "transparent",
+                }}
+              />
+            </div>
+            <span className="text-[9px] text-gh-text-secondary" aria-hidden="true">
+              {DAY_LABELS[i]}
+            </span>
           </div>
-          <span className="text-[9px] text-gh-text-secondary">{DAY_LABELS[i]}</span>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </figure>
   );
 }

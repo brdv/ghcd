@@ -293,7 +293,13 @@ export default function App() {
   const gridCols = Math.min(users.length || 1, 3);
 
   return (
-    <div className="min-h-screen bg-gh-bg text-gh-text-primary p-4 sm:p-6 font-sans flex flex-col">
+    <main className="min-h-screen bg-gh-bg text-gh-text-primary p-4 sm:p-6 font-sans flex flex-col">
+      <a
+        href="#dashboard"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-3 focus:bg-gh-accent focus:text-white focus:rounded-lg focus:top-2 focus:left-2"
+      >
+        Skip to content
+      </a>
       <Toolbar
         fromDate={fromDate}
         setFromDate={setFromDate}
@@ -328,7 +334,10 @@ export default function App() {
         )}
 
         {users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-gh-text-secondary">
+          <div
+            role="status"
+            className="flex flex-col items-center justify-center py-24 text-gh-text-secondary"
+          >
             <p className="text-base mb-2">No users configured</p>
             <button
               type="button"
@@ -392,15 +401,21 @@ export default function App() {
           href="https://github.com/brdv/ghcd"
           target="_blank"
           rel="noreferrer"
+          aria-label="GHCD project on GitHub"
           className="text-gh-accent hover:text-gh-accent-hover"
         >
           GHCD
         </a>{" "}
-        — Created with ❤️ by{" "}
+        — Created with{" "}
+        <span role="img" aria-label="love">
+          ❤️
+        </span>{" "}
+        by{" "}
         <a
           href="https://github.com/brdv"
           target="_blank"
           rel="noreferrer"
+          aria-label="brdv on GitHub"
           className="text-gh-accent hover:text-gh-accent-hover"
         >
           brdv
@@ -410,11 +425,12 @@ export default function App() {
           href="https://github.com/mathijsr94"
           target="_blank"
           rel="noreferrer"
+          aria-label="mathijsr94 on GitHub"
           className="text-gh-accent hover:text-gh-accent-hover"
         >
           mathijsr94
         </a>
       </footer>
-    </div>
+    </main>
   );
 }

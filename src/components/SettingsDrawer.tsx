@@ -1,8 +1,16 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchOrgMembers } from "../lib/github";
 import { ALL_STATS } from "../lib/stats";
 import DatePresets from "./DatePresets";
 import UserChip from "./UserChip";
+
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ),
+  );
+}
 
 const inputClass =
   "px-3 py-2 rounded-lg border border-gh-border bg-gh-card text-gh-text-primary text-sm outline-none focus:border-gh-accent";
@@ -59,6 +67,8 @@ export default function SettingsDrawer({
   const [userInput, setUserInput] = useState("");
   const [patVisible, setPatVisible] = useState(false);
   const [importingOrg, setImportingOrg] = useState(false);
+  const drawerRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<Element | null>(null);
 
   function addUser() {
     const u = userInput.trim().toLowerCase();
@@ -90,13 +100,56 @@ export default function SettingsDrawer({
     }
   }
 
+  // Focus the close button when the drawer opens, restore focus when it closes
+  useEffect(() => {
+    if (open) {
+      triggerRef.current = document.activeElement;
+      const focusable = drawerRef.current ? getFocusableElements(drawerRef.current) : [];
+      focusable[0]?.focus();
+    } else if (triggerRef.current instanceof HTMLElement) {
+      triggerRef.current.focus();
+      triggerRef.current = null;
+    }
+  }, [open]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+        return;
+      }
+
+      if (e.key === "Tab" && drawerRef.current) {
+        const focusable = getFocusableElements(drawerRef.current);
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    },
+    [onClose],
+  );
+
   return (
     <>
       {/* Backdrop */}
       {open && (
         <button
           type="button"
-          className="fixed inset-0 bg-black/50 z-20 transition-opacity w-full h-full cursor-default border-none"
+          className="fixed inset-0 bg-black/50 z-20 transition-opacity w-full h-full cursor-pointer border-none"
           tabIndex={-1}
           onClick={onClose}
           aria-label="Close settings"
@@ -104,7 +157,11 @@ export default function SettingsDrawer({
       )}
 
       {/* Drawer — full screen on mobile, 340px sidebar on sm+ */}
-      <div
+      <aside
+        ref={drawerRef}
+        inert={!open}
+        aria-label="Settings"
+        onKeyDown={open ? handleKeyDown : undefined}
         className={`fixed top-0 right-0 h-full w-full sm:w-[340px] bg-gh-bg border-l border-gh-border z-30 transform transition-transform duration-200 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
@@ -114,6 +171,7 @@ export default function SettingsDrawer({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close settings"
             className="bg-transparent border-none text-gh-text-secondary hover:text-gh-text-primary cursor-pointer text-xl leading-none p-1"
           >
             &times;
@@ -123,24 +181,32 @@ export default function SettingsDrawer({
         <div className="p-5 flex flex-col gap-5 overflow-y-auto h-[calc(100%-57px)]">
           {/* PAT section */}
           <div className="flex flex-col gap-2">
-            <span className={sectionLabel}>Personal Access Token</span>
+            <label htmlFor="pat-input" className={sectionLabel}>
+              Personal Access Token
+            </label>
             <div className="relative flex-1 min-w-[200px]">
               <input
+                id="pat-input"
                 type={patVisible ? "text" : "password"}
                 value={pat}
                 onChange={(e) => setPat(e.target.value)}
                 placeholder="ghp_..."
+                aria-describedby="pat-help"
                 className={`${inputClass} w-full pr-[50px]`}
               />
               <button
                 type="button"
                 onClick={() => setPatVisible(!patVisible)}
+                aria-label={
+                  patVisible ? "Hide personal access token" : "Show personal access token"
+                }
+                aria-pressed={patVisible}
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-gh-text-secondary cursor-pointer text-xs"
               >
                 {patVisible ? "Hide" : "Show"}
               </button>
             </div>
-            <p className="text-[11px] text-gh-text-secondary">
+            <p id="pat-help" className="text-[11px] text-gh-text-secondary">
               Requires{" "}
               <code className="bg-gh-badge px-1 py-0.5 rounded text-[11px]">read:user</code> and{" "}
               <code className="bg-gh-badge px-1 py-0.5 rounded text-[11px]">read:org</code> scopes.
@@ -150,8 +216,11 @@ export default function SettingsDrawer({
 
           {/* Org section */}
           <div className="flex flex-col gap-2">
-            <span className={sectionLabel}>Organization</span>
+            <label htmlFor="org-input" className={sectionLabel}>
+              Organization
+            </label>
             <input
+              id="org-input"
               value={org}
               onChange={(e) => setOrg(e.target.value)}
               placeholder="Optional — filter by org"
@@ -160,8 +229,8 @@ export default function SettingsDrawer({
           </div>
 
           {/* Date range section */}
-          <div className="flex flex-col gap-2">
-            <span className={sectionLabel}>Date Range</span>
+          <fieldset className="flex flex-col gap-2 border-none p-0 m-0">
+            <legend className={sectionLabel}>Date Range</legend>
             <DatePresets
               fromDate={fromDate}
               toDate={toDate}
@@ -169,27 +238,42 @@ export default function SettingsDrawer({
               setToDate={setToDate}
             />
             <div className="flex gap-2 items-center">
+              <label htmlFor="from-date" className="sr-only">
+                From date
+              </label>
               <input
+                id="from-date"
                 type="date"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
+                aria-label="From date"
                 className={`${inputClass} flex-1`}
               />
-              <span className="text-gh-text-secondary text-xs">to</span>
+              <span className="text-gh-text-secondary text-xs" aria-hidden="true">
+                to
+              </span>
+              <label htmlFor="to-date" className="sr-only">
+                To date
+              </label>
               <input
+                id="to-date"
                 type="date"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
+                aria-label="To date"
                 className={`${inputClass} flex-1`}
               />
             </div>
-          </div>
+          </fieldset>
 
           {/* Users section */}
           <div className="flex flex-col gap-2">
-            <span className={sectionLabel}>Users</span>
+            <label htmlFor="user-input" className={sectionLabel}>
+              Users
+            </label>
             <div className="flex gap-2">
               <input
+                id="user-input"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -251,6 +335,7 @@ export default function SettingsDrawer({
                         setVisibleStats([...visibleStats, stat.id]);
                       }
                     }}
+                    aria-pressed={active}
                     className={`px-3 py-1 rounded-full text-xs font-medium border cursor-pointer transition-colors ${
                       active
                         ? "bg-gh-accent/20 border-gh-accent text-gh-accent"
@@ -288,7 +373,7 @@ export default function SettingsDrawer({
             </div>
           </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 }

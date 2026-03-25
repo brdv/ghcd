@@ -30,6 +30,7 @@ export default function DatePresets({
               setToDate(p.to);
               onSelect?.(p.from, p.to);
             }}
+            aria-pressed={active}
             className={`px-2.5 py-1 rounded-full text-xs font-medium border cursor-pointer transition-colors ${
               active
                 ? "bg-gh-accent/20 border-gh-accent text-gh-accent"

@@ -10,6 +10,7 @@ export default function UserChip({ username, onRemove }: UserChipProps) {
       <button
         type="button"
         onClick={onRemove}
+        aria-label={`Remove ${username}`}
         className="bg-transparent border-none text-gh-text-secondary cursor-pointer text-base leading-none p-0 hover:text-gh-danger"
       >
         &times;

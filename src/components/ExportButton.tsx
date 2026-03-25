@@ -12,7 +12,7 @@ export default function ExportButton({ elementSelector }: ExportButtonProps) {
       type="button"
       onClick={handleOnExport}
       className={`p-2 rounded-lg bg-gh-badge text-gh-text-secondary transition-colors border-none shrink-0 ${"hover:text-gh-text-primary cursor-pointer"}`}
-      title="Export as PNG"
+      aria-label="Export as PNG"
     >
       <svg
         width={18}
@@ -23,8 +23,7 @@ export default function ExportButton({ elementSelector }: ExportButtonProps) {
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
-        role="img"
-        aria-label="Export as PNG"
+        aria-hidden="true"
       >
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
         <polyline points="7 10 12 15 17 10" />

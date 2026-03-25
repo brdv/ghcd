@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 import type { ContributionLevel, ContributionWeek } from "../lib/types";
 
 const CELL_SIZE = 13;
@@ -42,9 +42,19 @@ interface HeatmapProps {
 export default function Heatmap({ weeks }: HeatmapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
+  const descId = useId();
 
   const width = LABEL_WIDTH + weeks.length * (CELL_SIZE + GAP);
   const height = 7 * (CELL_SIZE + GAP) + 20;
+
+  const totalContributions = useMemo(
+    () =>
+      weeks.reduce(
+        (sum, w) => sum + w.contributionDays.reduce((s, d) => s + d.contributionCount, 0),
+        0,
+      ),
+    [weeks],
+  );
 
   const monthLabels = useMemo(() => {
     const labels: { month: string; x: number; key: string }[] = [];
@@ -127,6 +137,11 @@ export default function Heatmap({ weeks }: HeatmapProps) {
 
   return (
     <div ref={containerRef} className="relative mb-3.5 bg-gh-badge rounded-lg p-3">
+      <div id={descId} className="sr-only">
+        {totalContributions} total contributions across {weeks.length} weeks. Colors range from no
+        contributions (empty) to highest activity (bright green). Hover or tap a cell to see
+        details.
+      </div>
       <div className="overflow-x-auto">
         <svg
           width={width}
@@ -135,6 +150,7 @@ export default function Heatmap({ weeks }: HeatmapProps) {
           xmlns="http://www.w3.org/2000/svg"
           role="img"
           aria-label="Contribution heatmap"
+          aria-describedby={descId}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={handleClick}
@@ -184,6 +200,9 @@ export default function Heatmap({ weeks }: HeatmapProps) {
 
       {tooltip && (
         <div
+          role="tooltip"
+          aria-live="polite"
+          aria-atomic="true"
           className="absolute z-50 pointer-events-none px-3 py-2 rounded-lg text-xs leading-relaxed whitespace-nowrap bg-gh-badge text-gh-text-primary border border-gh-border shadow-lg -translate-x-1/2 -translate-y-full"
           style={{ left: tooltip.x, top: tooltip.y }}
         >
