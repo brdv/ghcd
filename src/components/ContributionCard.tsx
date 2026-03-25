@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { Badge } from "../lib/badges";
+import { ALL_STATS } from "../lib/stats";
 import type { UserResult } from "../lib/types";
 import Heatmap from "./Heatmap";
 import StatsBar from "./StatsBar";
@@ -20,6 +21,7 @@ export default function ContributionCard({
   onSelect,
 }: ContributionCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
   const collection = result.data?.contributionsCollection;
   const totalContributions = collection?.contributionCalendar.totalContributions;
   const isClickable = !!result.data;
@@ -31,6 +33,7 @@ export default function ContributionCard({
   }
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: role is conditionally set to "button" when clickable
     <div
       ref={cardRef}
       className={`bg-gh-card rounded-xl px-5 py-4 border border-gh-border transition-colors duration-150 ${
@@ -49,23 +52,33 @@ export default function ContributionCard({
     >
       {/* Header */}
       <div className="flex items-center gap-2.5 mb-3">
-        {result.data ? (
-          <img src={result.data.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-gh-badge animate-pulse" />
-        )}
+        <div className="relative w-8 h-8 shrink-0">
+          {(!result.data || !avatarLoaded) && (
+            <div className="absolute inset-0 rounded-full bg-gh-badge animate-pulse" />
+          )}
+          {result.data && (
+            <img
+              src={result.data.avatarUrl}
+              alt=""
+              className={`w-8 h-8 rounded-full transition-opacity duration-150 ${avatarLoaded ? "opacity-100" : "opacity-0"}`}
+              onLoad={() => setAvatarLoaded(true)}
+            />
+          )}
+        </div>
         <div className="flex items-center justify-between w-full">
           <span className="font-semibold text-[15px]">{username}</span>
-          {totalContributions != null && (
+          {totalContributions != null ? (
             <span className="text-gh-text-secondary text-xs ml-2 font-bold">
               {totalContributions} contributions
             </span>
-          )}
+          ) : result.loading ? (
+            <div className="h-3 w-24 bg-gh-badge/50 rounded animate-pulse ml-2" />
+          ) : null}
         </div>
       </div>
 
       {/* Badges */}
-      {badges.length > 0 && (
+      {badges.length > 0 ? (
         <div className="flex gap-1.5 flex-wrap mb-3">
           {badges.map((b) => (
             <span
@@ -78,20 +91,39 @@ export default function ContributionCard({
             </span>
           ))}
         </div>
-      )}
+      ) : result.loading ? (
+        <div className="flex gap-1.5 flex-wrap mb-3 animate-pulse">
+          {["badge-sk-1", "badge-sk-2", "badge-sk-3"].map((key) => (
+            <div
+              key={key}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gh-badge/50 border border-gh-border/50 h-[22px] w-16"
+            />
+          ))}
+        </div>
+      ) : null}
 
       {/* Body */}
-      {result.loading && (
+      {result.loading && !collection && (
         <div className="animate-pulse">
-          <div className="flex gap-1.5 mb-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-5 w-16 bg-gh-badge/50 rounded-full" />
-            ))}
+          {/* Heatmap skeleton — matches SVG aspect ratio (7 rows × 16px + 20px top) */}
+          <div className="overflow-hidden mb-3.5">
+            <div className="w-full" style={{ aspectRatio: "880 / 132" }}>
+              <div className="w-full h-full bg-gh-badge/50 rounded-md" />
+            </div>
           </div>
-          <div className="h-[100px] bg-gh-badge/50 rounded-md mb-3" />
-          <div className="flex gap-2">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-[52px] bg-gh-badge/50 rounded-lg flex-1" />
+          {/* Stats skeleton */}
+          <div className="flex gap-2 justify-center">
+            {Array.from(
+              { length: visibleStats.length || ALL_STATS.length },
+              (_, i) => `stat-sk-${i}`,
+            ).map((key) => (
+              <div
+                key={key}
+                className="flex flex-col items-center px-2 sm:px-3.5 py-2 rounded-lg bg-gh-badge/50 flex-1 min-w-0"
+              >
+                <div className="h-7 w-8 bg-gh-badge rounded mb-0.5" />
+                <div className="h-3 w-12 bg-gh-badge rounded" />
+              </div>
             ))}
           </div>
         </div>

@@ -84,8 +84,10 @@ export default function App() {
       return users;
     }
     const sorted = [...users].sort((a, b) => {
-      const totalA = results[a]?.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0;
-      const totalB = results[b]?.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0;
+      const totalA =
+        results[a]?.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0;
+      const totalB =
+        results[b]?.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0;
       return totalB - totalA;
     });
     localStorage.setItem("ghcd-sort-order", JSON.stringify(sorted));
@@ -143,12 +145,14 @@ export default function App() {
 
     setIsFetching(true);
 
-    // Set all users to loading
-    const initial: Record<string, UserResult> = {};
-    users.forEach((u) => {
-      initial[u] = { loading: true };
+    // Set all users to loading, preserving previous data so cards don't flash
+    setResults((prev) => {
+      const next: Record<string, UserResult> = {};
+      for (const u of users) {
+        next[u] = { ...prev[u], loading: true };
+      }
+      return next;
     });
-    setResults(initial);
 
     // Resolve org ID
     let orgId: string | null = null;
@@ -187,19 +191,22 @@ export default function App() {
       }),
     );
 
-    if (errorCount > 0) {
-      addToast(
-        "error",
-        `Failed to fetch data for ${errorCount} user${errorCount > 1 ? "s" : ""}. Check the cards for details.`,
-      );
-    } else {
-      addToast(
-        "success",
-        `Fetched contributions for ${users.length} user${users.length > 1 ? "s" : ""}.`,
-      );
-    }
-
     setIsFetching(false);
+
+    // Defer toast so the card transitions settle before triggering another render
+    requestAnimationFrame(() => {
+      if (errorCount > 0) {
+        addToast(
+          "error",
+          `Failed to fetch data for ${errorCount} user${errorCount > 1 ? "s" : ""}. Check the cards for details.`,
+        );
+      } else {
+        addToast(
+          "success",
+          `Fetched contributions for ${users.length} user${users.length > 1 ? "s" : ""}.`,
+        );
+      }
+    });
   }
 
   const badges = useMemo(() => computeBadges(results), [results]);
@@ -299,9 +306,21 @@ export default function App() {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <footer className="mt-auto pt-12 py-6 text-center text-xs text-gh-text-secondary border-t border-gh-border">
-        <a href="https://github.com/brdv/ghcd" target="_blank" rel="noreferrer" className="text-gh-accent hover:text-gh-accent-hover">GHCD</a>
-        {" "}— Created with ❤️ by{" "}
-        <a href="https://github.com/brdv" target="_blank" rel="noreferrer" className="text-gh-accent hover:text-gh-accent-hover">
+        <a
+          href="https://github.com/brdv/ghcd"
+          target="_blank"
+          rel="noreferrer"
+          className="text-gh-accent hover:text-gh-accent-hover"
+        >
+          GHCD
+        </a>{" "}
+        — Created with ❤️ by{" "}
+        <a
+          href="https://github.com/brdv"
+          target="_blank"
+          rel="noreferrer"
+          className="text-gh-accent hover:text-gh-accent-hover"
+        >
           brdv
         </a>
         {" & "}

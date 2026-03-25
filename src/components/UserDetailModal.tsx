@@ -155,10 +155,8 @@ export default function UserDetailModal({
   if (data.websiteUrl) meta.push({ icon: "\u{1F517}", text: data.websiteUrl });
 
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: keyDown handled on the dialog panel
     <div className="fixed inset-0 z-40">
       {/* Backdrop — click to close */}
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Escape is handled on the dialog panel */}
       <div
         className="absolute inset-0 transition-[background-color,backdrop-filter] duration-300"
         style={{
