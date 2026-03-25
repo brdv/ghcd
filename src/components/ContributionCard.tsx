@@ -3,6 +3,7 @@ import type { Badge } from "../lib/badges";
 import { ALL_STATS } from "../lib/stats";
 import { computeStreak } from "../lib/streaks";
 import type { UserResult } from "../lib/types";
+import { computeVelocity } from "../lib/velocity";
 import Heatmap from "./Heatmap";
 import StatsBar from "./StatsBar";
 import "./ContributionCard.css";
@@ -26,6 +27,7 @@ export default function ContributionCard({
   const [avatarLoaded, setAvatarLoaded] = useState(false);
   const collection = result.data?.contributionsCollection;
   const totalContributions = collection?.contributionCalendar.totalContributions;
+  const velocity = collection ? computeVelocity(collection) : null;
   const isClickable = !!result.data;
   const currentStreak = collection ? computeStreak(collection).current : 0;
   const hasStreak = currentStreak > 2;
@@ -79,9 +81,12 @@ export default function ContributionCard({
             )}
           </span>
           {totalContributions != null ? (
-            <span className="text-gh-text-secondary text-xs ml-2 font-bold">
-              {totalContributions} contributions
-            </span>
+            <div className="flex items-center gap-2 ml-2">
+              <span className="text-gh-text-secondary text-xs font-bold">
+                {totalContributions} contributions
+              </span>
+              {velocity && velocity.percentage !== 0 && <VelocityBadge velocity={velocity} />}
+            </div>
           ) : result.loading ? (
             <div className="h-3 w-24 bg-gh-badge/50 rounded animate-pulse ml-2" />
           ) : null}
@@ -145,6 +150,23 @@ export default function ContributionCard({
         </>
       )}
     </div>
+  );
+}
+
+function VelocityBadge({ velocity }: { velocity: { percentage: number } }) {
+  const isUp = velocity.percentage > 0;
+  const arrow = isUp ? "\u2191" : "\u2193";
+  const color = isUp ? "text-green-400" : "text-red-400";
+  const bg = isUp ? "bg-green-400/10" : "bg-red-400/10";
+  const display = `${Math.abs(Math.round(velocity.percentage))}%`;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${color} ${bg}`}
+      title={`${isUp ? "Up" : "Down"} ${display} compared to the first half of this period`}
+    >
+      {arrow} {display}
+    </span>
   );
 }
 
