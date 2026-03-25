@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --contrib-none: #161b22;
+  --contrib-q1: #0e4429;
+  --contrib-q2: #006d32;
+  --contrib-q3: #26a641;
+  --contrib-q4: #39d353;
+  --text-secondary: #8b949e;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+}

@@ -1,0 +1,17 @@
+node_modules
+dist
+.claude
+
+# Build/cache
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
