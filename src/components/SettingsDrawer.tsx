@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ALL_STATS } from "../lib/stats";
 import UserChip from "./UserChip";
 
 const inputClass =
@@ -15,6 +16,8 @@ interface SettingsDrawerProps {
   setOrg: (v: string) => void;
   users: string[];
   setUsers: (v: string[]) => void;
+  visibleStats: string[];
+  setVisibleStats: (v: string[]) => void;
 }
 
 export default function SettingsDrawer({
@@ -26,6 +29,8 @@ export default function SettingsDrawer({
   setOrg,
   users,
   setUsers,
+  visibleStats,
+  setVisibleStats,
 }: SettingsDrawerProps) {
   const [userInput, setUserInput] = useState("");
   const [patVisible, setPatVisible] = useState(false);
@@ -144,6 +149,36 @@ export default function SettingsDrawer({
                 No users added yet. Add GitHub usernames above.
               </p>
             )}
+          </div>
+
+          {/* Visible stats section */}
+          <div className="flex flex-col gap-2">
+            <span className={sectionLabel}>Visible Stats</span>
+            <div className="flex gap-1.5 flex-wrap">
+              {ALL_STATS.map((stat) => {
+                const active = visibleStats.includes(stat.id);
+                return (
+                  <button
+                    key={stat.id}
+                    type="button"
+                    onClick={() => {
+                      if (active) {
+                        setVisibleStats(visibleStats.filter((s) => s !== stat.id));
+                      } else {
+                        setVisibleStats([...visibleStats, stat.id]);
+                      }
+                    }}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border cursor-pointer transition-colors ${
+                      active
+                        ? "bg-gh-accent/20 border-gh-accent text-gh-accent"
+                        : "bg-transparent border-gh-border text-gh-text-secondary hover:border-gh-text-secondary"
+                    }`}
+                  >
+                    {stat.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

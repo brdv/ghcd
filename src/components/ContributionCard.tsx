@@ -7,9 +7,15 @@ interface ContributionCardProps {
   username: string;
   result: UserResult;
   badges: Badge[];
+  visibleStats: string[];
 }
 
-export default function ContributionCard({ username, result, badges }: ContributionCardProps) {
+export default function ContributionCard({
+  username,
+  result,
+  badges,
+  visibleStats,
+}: ContributionCardProps) {
   const collection = result.data?.contributionsCollection;
   const totalContributions = collection?.contributionCalendar.totalContributions;
 
@@ -56,7 +62,7 @@ export default function ContributionCard({ username, result, badges }: Contribut
       {collection && (
         <>
           <Heatmap weeks={collection.contributionCalendar.weeks} />
-          <StatsBar collection={collection} />
+          <StatsBar collection={collection} visibleStats={visibleStats} />
         </>
       )}
     </div>

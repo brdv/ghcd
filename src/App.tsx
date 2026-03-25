@@ -5,6 +5,7 @@ import ToastContainer from "./components/Toast";
 import Toolbar from "./components/Toolbar";
 import { computeBadges } from "./lib/badges";
 import { gql, QUERY_ORG, QUERY_USER } from "./lib/github";
+import { DEFAULT_VISIBLE_STATS } from "./lib/stats";
 import type { GitHubUser, UserResult } from "./lib/types";
 import { useToasts } from "./lib/useToasts";
 
@@ -54,6 +55,7 @@ export default function App() {
   const [results, setResults] = useState<Record<string, UserResult>>({});
   const [isFetching, setIsFetching] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [visibleStats, setVisibleStats] = useState<string[]>(DEFAULT_VISIBLE_STATS);
   const { toasts, addToast, dismissToast } = useToasts();
 
   function handleSetPat(v: string) {
@@ -206,6 +208,7 @@ export default function App() {
               username={u}
               result={results[u] ?? {}}
               badges={badges[u] ?? []}
+              visibleStats={visibleStats}
             />
           ))}
         </div>
@@ -220,6 +223,8 @@ export default function App() {
         setOrg={setOrg}
         users={users}
         setUsers={setUsers}
+        visibleStats={visibleStats}
+        setVisibleStats={setVisibleStats}
       />
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />

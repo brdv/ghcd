@@ -1,26 +1,24 @@
+import { ALL_STATS } from "../lib/stats";
 import type { ContributionsCollection } from "../lib/types";
 
 interface StatsBarProps {
   collection: ContributionsCollection;
+  visibleStats: string[];
 }
 
-export default function StatsBar({ collection }: StatsBarProps) {
-  const stats = [
-    { value: collection.totalCommitContributions, label: "Commits" },
-    { value: collection.totalPullRequestContributions, label: "PRs" },
-    { value: collection.totalPullRequestReviewContributions, label: "Reviews" },
-    { value: collection.totalIssueContributions, label: "Issues" },
-    { value: collection.commitContributionsByRepository.length, label: "Repos" },
-  ];
+export default function StatsBar({ collection, visibleStats }: StatsBarProps) {
+  const stats = ALL_STATS.filter((s) => visibleStats.includes(s.id));
+
+  if (stats.length === 0) return null;
 
   return (
     <div className="flex gap-2 justify-center">
       {stats.map((s) => (
         <div
-          key={s.label}
+          key={s.id}
           className="flex flex-col items-center px-2 sm:px-3.5 py-2 rounded-lg bg-gh-badge flex-1 min-w-0"
         >
-          <span className="text-xl font-bold">{s.value}</span>
+          <span className="text-xl font-bold">{s.getValue(collection)}</span>
           <span className="text-[11px] text-gh-text-secondary mt-0.5">{s.label}</span>
         </div>
       ))}
