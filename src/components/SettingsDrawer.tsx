@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ALL_STATS } from "../lib/stats";
+import DatePresets from "./DatePresets";
 import UserChip from "./UserChip";
 
 const inputClass =
@@ -14,6 +15,10 @@ interface SettingsDrawerProps {
   setPat: (v: string) => void;
   org: string;
   setOrg: (v: string) => void;
+  fromDate: string;
+  setFromDate: (v: string) => void;
+  toDate: string;
+  setToDate: (v: string) => void;
   users: string[];
   setUsers: (v: string[]) => void;
   visibleStats: string[];
@@ -27,6 +32,10 @@ export default function SettingsDrawer({
   setPat,
   org,
   setOrg,
+  fromDate,
+  setFromDate,
+  toDate,
+  setToDate,
   users,
   setUsers,
   visibleStats,
@@ -114,6 +123,32 @@ export default function SettingsDrawer({
               placeholder="Optional — filter by org"
               className={`${inputClass} w-full`}
             />
+          </div>
+
+          {/* Date range section */}
+          <div className="flex flex-col gap-2">
+            <span className={sectionLabel}>Date Range</span>
+            <DatePresets
+              fromDate={fromDate}
+              toDate={toDate}
+              setFromDate={setFromDate}
+              setToDate={setToDate}
+            />
+            <div className="flex gap-2 items-center">
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className={`${inputClass} flex-1`}
+              />
+              <span className="text-gh-text-secondary text-xs">to</span>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className={`${inputClass} flex-1`}
+              />
+            </div>
           </div>
 
           {/* Users section */}

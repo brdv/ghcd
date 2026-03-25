@@ -90,7 +90,7 @@ export default function App() {
     window.history.replaceState(null, "", url.toString());
   }, [users, org, fromDate, toDate]);
 
-  async function fetchAll() {
+  async function fetchAll(overrides?: { from?: string; to?: string }) {
     const token = pat.trim();
     if (!token) {
       addToast("error", "No Personal Access Token set. Open settings to add one.");
@@ -103,8 +103,8 @@ export default function App() {
       return;
     }
 
-    const from = new Date(fromDate).toISOString();
-    const to = new Date(toDate).toISOString();
+    const from = new Date(overrides?.from ?? fromDate).toISOString();
+    const to = new Date(overrides?.to ?? toDate).toISOString();
     const orgName = org.trim();
 
     setIsFetching(true);
@@ -221,6 +221,10 @@ export default function App() {
         setPat={handleSetPat}
         org={org}
         setOrg={setOrg}
+        fromDate={fromDate}
+        setFromDate={setFromDate}
+        toDate={toDate}
+        setToDate={setToDate}
         users={users}
         setUsers={setUsers}
         visibleStats={visibleStats}
