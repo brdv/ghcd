@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ContributionCard from "./components/ContributionCard";
 import SettingsDrawer from "./components/SettingsDrawer";
-import ToastContainer from "./components/Toast";
+
 import Toolbar from "./components/Toolbar";
 import UserDetailModal from "./components/UserDetailModal";
 import { computeBadges } from "./lib/badges";
 import { getDatePresets } from "./lib/datePresets";
 import { gql, QUERY_ORG, QUERY_USER } from "./lib/github";
 import { DEFAULT_VISIBLE_STATS } from "./lib/stats";
+import { useToast } from "./lib/ToastContext";
 import type { GitHubUser, UserResult } from "./lib/types";
-import { useToasts } from "./lib/useToasts";
 
 interface UrlState {
   users?: string[];
@@ -69,7 +69,7 @@ export default function App() {
   const [selectedUser, setSelectedUser] = useState<{ username: string; rect: DOMRect } | null>(
     null,
   );
-  const { toasts, addToast, dismissToast } = useToasts();
+  const { addToast } = useToast();
 
   const allLoaded = users.length > 0 && users.every((u) => results[u]?.data || results[u]?.error);
   const sortedUsers = useMemo(() => {
@@ -322,8 +322,6 @@ export default function App() {
           onClose={() => setSelectedUser(null)}
         />
       )}
-
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <footer className="mt-auto pt-12 py-6 text-center text-xs text-gh-text-secondary border-t border-gh-border">
         <a
