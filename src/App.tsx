@@ -71,6 +71,27 @@ export default function App() {
   );
   const { toasts, addToast, dismissToast } = useToasts();
 
+  const allLoaded = users.length > 0 && users.every((u) => results[u]?.data || results[u]?.error);
+  const sortedUsers = useMemo(() => {
+    if (!allLoaded) {
+      const saved: string[] = JSON.parse(localStorage.getItem("ghcd-sort-order") ?? "[]");
+      if (saved.length > 0) {
+        const savedSet = new Set(saved);
+        const known = saved.filter((u) => users.includes(u));
+        const rest = users.filter((u) => !savedSet.has(u));
+        return [...known, ...rest];
+      }
+      return users;
+    }
+    const sorted = [...users].sort((a, b) => {
+      const totalA = results[a]?.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0;
+      const totalB = results[b]?.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0;
+      return totalB - totalA;
+    });
+    localStorage.setItem("ghcd-sort-order", JSON.stringify(sorted));
+    return sorted;
+  }, [users, results, allLoaded]);
+
   function handleSetPat(v: string) {
     setPat(v);
     localStorage.setItem("ghcd-pat", v);
@@ -236,26 +257,16 @@ export default function App() {
           className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
           style={gridCols < 3 ? { maxWidth: gridCols === 1 ? "100%" : undefined } : undefined}
         >
-          {[...users]
-            .sort((a, b) => {
-              const totalA =
-                results[a]?.data?.contributionsCollection.contributionCalendar.totalContributions ??
-                0;
-              const totalB =
-                results[b]?.data?.contributionsCollection.contributionCalendar.totalContributions ??
-                0;
-              return totalB - totalA;
-            })
-            .map((u) => (
-              <ContributionCard
-                key={u}
-                username={u}
-                result={results[u] ?? {}}
-                badges={badges[u] ?? []}
-                visibleStats={visibleStats}
-                onSelect={(rect) => setSelectedUser({ username: u, rect })}
-              />
-            ))}
+          {sortedUsers.map((u) => (
+            <ContributionCard
+              key={u}
+              username={u}
+              result={results[u] ?? {}}
+              badges={badges[u] ?? []}
+              visibleStats={visibleStats}
+              onSelect={(rect) => setSelectedUser({ username: u, rect })}
+            />
+          ))}
         </div>
       )}
 

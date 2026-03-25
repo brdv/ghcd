@@ -52,7 +52,7 @@ export default function ContributionCard({
         {result.data ? (
           <img src={result.data.avatarUrl} alt="" className="w-8 h-8 rounded-full" />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-gh-badge" />
+          <div className="w-8 h-8 rounded-full bg-gh-badge animate-pulse" />
         )}
         <div className="flex items-center justify-between w-full">
           <span className="font-semibold text-[15px]">{username}</span>
@@ -82,7 +82,19 @@ export default function ContributionCard({
 
       {/* Body */}
       {result.loading && (
-        <div className="text-gh-text-secondary text-[13px] py-[30px] text-center">Loading...</div>
+        <div className="animate-pulse">
+          <div className="flex gap-1.5 mb-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-5 w-16 bg-gh-badge/50 rounded-full" />
+            ))}
+          </div>
+          <div className="h-[100px] bg-gh-badge/50 rounded-md mb-3" />
+          <div className="flex gap-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-[52px] bg-gh-badge/50 rounded-lg flex-1" />
+            ))}
+          </div>
+        </div>
       )}
       {result.error && <div className="text-gh-danger text-[13px] py-3">{result.error}</div>}
       {collection && (
