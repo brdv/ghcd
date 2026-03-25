@@ -87,7 +87,9 @@ export default function ContributionCard({
               <span className="text-gh-text-secondary text-xs font-bold">
                 {totalContributions} contributions
               </span>
-              {velocity && velocity.percentage !== 0 && <VelocityBadge velocity={velocity} />}
+              {velocity && velocity.percentage !== 0 && (
+                <VelocityBadge velocity={velocity} periodDays={result.periodDays} />
+              )}
             </div>
           ) : result.loading ? (
             <div className="h-3 w-24 bg-gh-badge/50 rounded animate-pulse ml-2" />
@@ -155,12 +157,29 @@ export default function ContributionCard({
   );
 }
 
-function VelocityBadge({ velocity }: { velocity: VelocityInfo }) {
+function formatPeriod(days: number): string {
+  if (days >= 365) {
+    const y = days / 365;
+    return y === 1 ? "1 year" : `${y % 1 === 0 ? y : y.toFixed(1)} years`;
+  }
+  if (days >= 30) {
+    const m = days / 30;
+    return m === 1 ? "1 month" : `${m % 1 === 0 ? m : m.toFixed(1)} months`;
+  }
+  if (days >= 7) {
+    const w = days / 7;
+    return w === 1 ? "1 week" : `${w % 1 === 0 ? w : w.toFixed(1)} weeks`;
+  }
+  return days === 1 ? "1 day" : `${days} days`;
+}
+
+function VelocityBadge({ velocity, periodDays }: { velocity: VelocityInfo; periodDays?: number }) {
   const isUp = velocity.percentage > 0;
   const arrow = isUp ? "\u2191" : "\u2193";
   const color = isUp ? "text-green-400" : "text-red-400";
   const bg = isUp ? "bg-green-400/10" : "bg-red-400/10";
   const pct = Math.abs(Math.round(velocity.percentage));
+  const period = periodDays ? formatPeriod(periodDays) : "the previous period";
 
   return (
     <Tooltip
@@ -170,7 +189,7 @@ function VelocityBadge({ velocity }: { velocity: VelocityInfo }) {
             {isUp ? "Trending up" : "Trending down"} {pct}%
           </span>
           <span className="text-gh-text-secondary">
-            {velocity.currentTotal} contributions vs {velocity.previousTotal} in the previous period
+            {velocity.currentTotal} contributions vs {velocity.previousTotal} in the prior {period}
           </span>
         </div>
       }

@@ -54,4 +54,6 @@ export interface UserResult {
   data?: GitHubUser;
   /** Total contributions in the equally-sized period before the selected range. */
   previousPeriodTotal?: number;
+  /** Length of the selected period in days. */
+  periodDays?: number;
 }
