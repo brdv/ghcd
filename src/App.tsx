@@ -109,6 +109,26 @@ export default function App() {
     }
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      // Ignore when typing in inputs
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      if (e.key === "r" || e.key === "R") {
+        e.preventDefault();
+        fetchAll();
+      }
+      if (e.key === "s" || e.key === "S") {
+        e.preventDefault();
+        setDrawerOpen((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  });
+
   // Sync state to URL
   useEffect(() => {
     const state: UrlState = {};

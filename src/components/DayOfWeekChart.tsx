@@ -24,7 +24,10 @@ export default function DayOfWeekChart({ weeks }: DayOfWeekChartProps) {
       {DISPLAY_ORDER.map((i) => (
         <div key={DAY_LABELS[i]} className="flex flex-col items-center gap-1 flex-1">
           <span className="text-[10px] text-gh-text-secondary font-medium">{totals[i]}</span>
-          <div className="w-full rounded-sm bg-gh-badge overflow-hidden flex flex-col justify-end" style={{ height: 32 }}>
+          <div
+            className="w-full rounded-sm bg-gh-badge overflow-hidden flex flex-col justify-end"
+            style={{ height: 32 }}
+          >
             <div
               className="w-full rounded-sm transition-all duration-300"
               style={{
