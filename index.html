@@ -1,19 +1,46 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <title>GitHub Contributions</title>
-  </head>
-  <body>
-    <script>
-      // Apply light class before first paint to prevent flash
-      var t = localStorage.getItem('ghcd-theme');
-      if (t === 'light' || (!t || t === 'system') && matchMedia('(prefers-color-scheme: light)').matches)
-        document.documentElement.classList.add('light');
-    </script>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon-32x32.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="/favicon-16x16.png"
+        />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="500x500"
+            href="/favicon-500x500.png"
+        />
+        <title>GHCD | GitHub Contributions Dashboard</title>
+    </head>
+    <body>
+        <script>
+            // Apply light class before first paint to prevent flash
+            var t = localStorage.getItem("ghcd-theme");
+            if (
+                t === "light" ||
+                ((!t || t === "system") &&
+                    matchMedia("(prefers-color-scheme: light)").matches)
+            )
+                document.documentElement.classList.add("light");
+        </script>
+        <div id="root"></div>
+        <script type="module" src="/src/main.tsx"></script>
+    </body>
 </html>
