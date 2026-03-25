@@ -52,4 +52,6 @@ export interface UserResult {
   loading?: boolean;
   error?: string;
   data?: GitHubUser;
+  /** Total contributions in the equally-sized period before the selected range. */
+  previousPeriodTotal?: number;
 }

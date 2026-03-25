@@ -27,7 +27,7 @@ export default function ContributionCard({
   const [avatarLoaded, setAvatarLoaded] = useState(false);
   const collection = result.data?.contributionsCollection;
   const totalContributions = collection?.contributionCalendar.totalContributions;
-  const velocity = collection ? computeVelocity(collection) : null;
+  const velocity = collection ? computeVelocity(collection, result.previousPeriodTotal) : null;
   const isClickable = !!result.data;
   const currentStreak = collection ? computeStreak(collection).current : 0;
   const hasStreak = currentStreak > 2;
@@ -163,7 +163,7 @@ function VelocityBadge({ velocity }: { velocity: { percentage: number } }) {
   return (
     <span
       className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${color} ${bg}`}
-      title={`${isUp ? "Up" : "Down"} ${display} compared to the first half of this period`}
+      title={`${isUp ? "Up" : "Down"} ${display} compared to the previous period`}
     >
       {arrow} {display}
     </span>

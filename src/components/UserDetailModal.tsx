@@ -12,6 +12,7 @@ interface UserDetailModalProps {
   username: string;
   data: GitHubUser;
   sourceRect: DOMRect;
+  previousPeriodTotal?: number;
   onClose: () => void;
 }
 
@@ -36,6 +37,7 @@ export default function UserDetailModal({
   username,
   data,
   sourceRect,
+  previousPeriodTotal,
   onClose,
 }: UserDetailModalProps) {
   const [phase, setPhase] = useState<Phase>("morph-in");
@@ -117,7 +119,10 @@ export default function UserDetailModal({
   const collection = data.contributionsCollection;
   const calendar = collection.contributionCalendar;
   const insights = useMemo(() => computeInsights(calendar.weeks), [calendar.weeks]);
-  const velocity = useMemo(() => computeVelocity(collection), [collection]);
+  const velocity = useMemo(
+    () => computeVelocity(collection, previousPeriodTotal),
+    [collection, previousPeriodTotal],
+  );
   const topRepos = collection.commitContributionsByRepository;
 
   // Card-position style (morph start/end)

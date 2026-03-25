@@ -1,4 +1,4 @@
-import { gql, QUERY_ORG, QUERY_USER } from "./github";
+import { gql, QUERY_ORG, QUERY_USER, QUERY_USER_TOTAL } from "./github";
 import type { GitHubUser } from "./types";
 
 export async function resolveOrgId(token: string, orgName: string): Promise<string | null> {
@@ -22,4 +22,28 @@ export async function fetchUserContributions(
     to: opts.to,
   });
   return d.user;
+}
+
+export async function fetchPreviousPeriodTotal(
+  token: string,
+  username: string,
+  opts: { orgId: string | null; from: string; to: string },
+): Promise<number | undefined> {
+  try {
+    const d = await gql<{
+      user: {
+        contributionsCollection: {
+          contributionCalendar: { totalContributions: number };
+        };
+      };
+    }>(token, QUERY_USER_TOTAL, {
+      user: username,
+      orgId: opts.orgId,
+      from: opts.from,
+      to: opts.to,
+    });
+    return d.user.contributionsCollection.contributionCalendar.totalContributions;
+  } catch {
+    return undefined;
+  }
 }

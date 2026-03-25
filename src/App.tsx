@@ -6,7 +6,11 @@ import Toolbar from "./components/Toolbar";
 import UserDetailModal from "./components/UserDetailModal";
 import { computeBadges } from "./lib/badges";
 import { getDatePresets } from "./lib/datePresets";
-import { fetchUserContributions, resolveOrgId } from "./lib/fetchContributions";
+import {
+  fetchPreviousPeriodTotal,
+  fetchUserContributions,
+  resolveOrgId,
+} from "./lib/fetchContributions";
 import { DEFAULT_VISIBLE_STATS } from "./lib/stats";
 import { useToast } from "./lib/ToastContext";
 import type { GitHubUser, UserResult } from "./lib/types";
@@ -363,6 +367,7 @@ export default function App() {
           username={selectedUser.username}
           data={results[selectedUser.username].data as GitHubUser}
           sourceRect={selectedUser.rect}
+          previousPeriodTotal={results[selectedUser.username].previousPeriodTotal}
           onClose={() => setSelectedUser(null)}
         />
       )}
