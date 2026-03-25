@@ -12,6 +12,7 @@
 
 .streak-glow {
   position: relative;
+  isolation: isolate;
 }
 
 .streak-glow::before {
@@ -30,4 +31,10 @@
   mask-composite: exclude;
   pointer-events: none;
   z-index: 1;
+}
+
+.streak-glow {
+  box-shadow:
+    0 0 15px 2px rgba(249, 115, 22, 0.15),
+    0 0 30px 5px rgba(239, 68, 68, 0.08);
 }
