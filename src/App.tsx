@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ContributionCard from "./components/ContributionCard";
 import SettingsDrawer from "./components/SettingsDrawer";
 import ToastContainer from "./components/Toast";
@@ -56,10 +56,10 @@ export default function App() {
   const { toasts, addToast, dismissToast } = useToasts();
 
   // Auto-fetch when page loads with state in URL
-  const [hasAutoFetched, setHasAutoFetched] = useState(false);
+  const hasAutoFetched = useRef(false);
   useEffect(() => {
-    if (!hasAutoFetched && initial) {
-      setHasAutoFetched(true);
+    if (!hasAutoFetched.current && initial) {
+      hasAutoFetched.current = true;
       fetchAll();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
