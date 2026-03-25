@@ -26,7 +26,6 @@ export interface RepoContribution {
   contributions: { totalCount: number };
 }
 
-
 export interface ContributionsCollection {
   totalCommitContributions: number;
   totalPullRequestContributions: number;

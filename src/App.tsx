@@ -5,6 +5,7 @@ import ToastContainer from "./components/Toast";
 import Toolbar from "./components/Toolbar";
 import UserDetailModal from "./components/UserDetailModal";
 import { computeBadges } from "./lib/badges";
+import { getDatePresets } from "./lib/datePresets";
 import { gql, QUERY_ORG, QUERY_USER } from "./lib/github";
 import { DEFAULT_VISIBLE_STATS } from "./lib/stats";
 import type { GitHubUser, UserResult } from "./lib/types";
@@ -35,6 +36,14 @@ function readStateFromUrl(): UrlState | null {
   return s ? decodeState(s) : null;
 }
 
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 function defaultFromDate(): string {
   const year = new Date().getFullYear();
   return `${year}-01-01`;
@@ -57,7 +66,9 @@ export default function App() {
   const [isFetching, setIsFetching] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [visibleStats, setVisibleStats] = useState<string[]>(DEFAULT_VISIBLE_STATS);
-  const [selectedUser, setSelectedUser] = useState<{ username: string; rect: DOMRect } | null>(null);
+  const [selectedUser, setSelectedUser] = useState<{ username: string; rect: DOMRect } | null>(
+    null,
+  );
   const { toasts, addToast, dismissToast } = useToasts();
 
   function handleSetPat(v: string) {
@@ -188,6 +199,27 @@ export default function App() {
         onOpenSettings={() => setDrawerOpen(true)}
       />
 
+      {users.length > 0 && (
+        <p className="text-gh-text-secondary text-sm mb-4">
+          Comparing{" "}
+          <span className="text-gh-text-primary font-medium">
+            {users.length} {users.length === 1 ? "user" : "users"}
+          </span>
+          {org.trim() && (
+            <>
+              {" "}
+              in <span className="text-gh-text-primary font-medium">{org.trim()}</span>
+            </>
+          )}{" "}
+          for{" "}
+          <span className="text-gh-text-primary font-medium">
+            {getDatePresets()
+              .find((p) => p.from === fromDate && p.to === toDate)
+              ?.label.toLowerCase() ?? `${formatDate(fromDate)} \u2013 ${formatDate(toDate)}`}
+          </span>
+        </p>
+      )}
+
       {users.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-gh-text-secondary">
           <p className="text-base mb-2">No users configured</p>
@@ -204,20 +236,26 @@ export default function App() {
           className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
           style={gridCols < 3 ? { maxWidth: gridCols === 1 ? "100%" : undefined } : undefined}
         >
-          {[...users].sort((a, b) => {
-            const totalA = results[a]?.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0;
-            const totalB = results[b]?.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0;
-            return totalB - totalA;
-          }).map((u) => (
-            <ContributionCard
-              key={u}
-              username={u}
-              result={results[u] ?? {}}
-              badges={badges[u] ?? []}
-              visibleStats={visibleStats}
-              onSelect={(rect) => setSelectedUser({ username: u, rect })}
-            />
-          ))}
+          {[...users]
+            .sort((a, b) => {
+              const totalA =
+                results[a]?.data?.contributionsCollection.contributionCalendar.totalContributions ??
+                0;
+              const totalB =
+                results[b]?.data?.contributionsCollection.contributionCalendar.totalContributions ??
+                0;
+              return totalB - totalA;
+            })
+            .map((u) => (
+              <ContributionCard
+                key={u}
+                username={u}
+                result={results[u] ?? {}}
+                badges={badges[u] ?? []}
+                visibleStats={visibleStats}
+                onSelect={(rect) => setSelectedUser({ username: u, rect })}
+              />
+            ))}
         </div>
       )}
 

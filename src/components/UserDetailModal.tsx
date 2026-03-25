@@ -14,7 +14,11 @@ interface UserDetailModalProps {
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 /** Return all focusable elements inside a container. */
@@ -26,7 +30,12 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
   );
 }
 
-export default function UserDetailModal({ username, data, sourceRect, onClose }: UserDetailModalProps) {
+export default function UserDetailModal({
+  username,
+  data,
+  sourceRect,
+  onClose,
+}: UserDetailModalProps) {
   const [phase, setPhase] = useState<Phase>("morph-in");
   const panelRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -185,14 +194,16 @@ export default function UserDetailModal({ username, data, sourceRect, onClose }:
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-gh-border shrink-0">
             <div className="flex items-center gap-3 min-w-0">
-              <img src={data.avatarUrl} alt={`${username}'s avatar`} className="w-12 h-12 rounded-full shrink-0" />
+              <img
+                src={data.avatarUrl}
+                alt={`${username}'s avatar`}
+                className="w-12 h-12 rounded-full shrink-0"
+              />
               <div className="min-w-0">
                 <h2 id={titleId} className="text-lg font-semibold truncate">
                   {username}
                 </h2>
-                {data.bio && (
-                  <p className="text-gh-text-secondary text-sm truncate">{data.bio}</p>
-                )}
+                {data.bio && <p className="text-gh-text-secondary text-sm truncate">{data.bio}</p>}
               </div>
             </div>
             <button
@@ -218,7 +229,8 @@ export default function UserDetailModal({ username, data, sourceRect, onClose }:
                 ))}
                 <span className="flex items-center gap-1">
                   <span className="text-xs">{"\u{1F465}"}</span>
-                  {data.followers.totalCount} followers &middot; {data.following.totalCount} following
+                  {data.followers.totalCount} followers &middot; {data.following.totalCount}{" "}
+                  following
                 </span>
               </div>
             )}
@@ -233,7 +245,10 @@ export default function UserDetailModal({ username, data, sourceRect, onClose }:
                 <InsightCard label="Current Streak" value={`${insights.currentStreak}d`} />
                 <InsightCard label="Longest Streak" value={`${insights.longestStreak}d`} />
                 <InsightCard label="Daily Average" value={`${insights.dailyAverage}`} />
-                <InsightCard label="Active Days" value={`${insights.activeDays}/${insights.totalDays}`} />
+                <InsightCard
+                  label="Active Days"
+                  value={`${insights.activeDays}/${insights.totalDays}`}
+                />
                 <InsightCard
                   label="Peak Day"
                   value={`${insights.peakDay.count}`}
@@ -250,7 +265,9 @@ export default function UserDetailModal({ username, data, sourceRect, onClose }:
             {/* Top repositories */}
             {topRepos.length > 0 && (
               <div>
-                <h3 className="text-sm font-medium text-gh-text-secondary mb-2">Top Repositories</h3>
+                <h3 className="text-sm font-medium text-gh-text-secondary mb-2">
+                  Top Repositories
+                </h3>
                 <div className="flex flex-col gap-1.5">
                   {topRepos.map((r) => (
                     <a
@@ -274,7 +291,9 @@ export default function UserDetailModal({ username, data, sourceRect, onClose }:
 
             {/* Heatmap */}
             <div>
-              <h3 className="text-sm font-medium text-gh-text-secondary mb-2">Contribution Activity</h3>
+              <h3 className="text-sm font-medium text-gh-text-secondary mb-2">
+                Contribution Activity
+              </h3>
               <Heatmap weeks={calendar.weeks} />
             </div>
 

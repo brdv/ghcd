@@ -37,7 +37,13 @@ export default function ContributionCard({
         isClickable ? "cursor-pointer hover:border-gh-accent/50" : ""
       }`}
       onClick={isClickable ? handleSelect : undefined}
-      onKeyDown={isClickable ? (e) => { if (e.key === "Enter") handleSelect(); } : undefined}
+      onKeyDown={
+        isClickable
+          ? (e) => {
+              if (e.key === "Enter") handleSelect();
+            }
+          : undefined
+      }
       role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : undefined}
     >
