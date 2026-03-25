@@ -288,14 +288,16 @@ export default function App() {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <footer className="mt-auto pt-12 py-6 text-center text-xs text-gh-text-secondary border-t border-gh-border">
-        <a href="https://github.com/brdv/ghcd" className="text-gh-accent hover:text-gh-accent-hover">GHCD</a>
+        <a href="https://github.com/brdv/ghcd" target="_blank" rel="noreferrer" className="text-gh-accent hover:text-gh-accent-hover">GHCD</a>
         {" "}— Created with ❤️ by{" "}
-        <a href="https://github.com/brdv" className="text-gh-accent hover:text-gh-accent-hover">
+        <a href="https://github.com/brdv" target="_blank" rel="noreferrer" className="text-gh-accent hover:text-gh-accent-hover">
           brdv
         </a>
         {" & "}
         <a
           href="https://github.com/mathijsr94"
+          target="_blank"
+          rel="noreferrer"
           className="text-gh-accent hover:text-gh-accent-hover"
         >
           mathijsr94
