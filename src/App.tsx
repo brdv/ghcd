@@ -69,6 +69,9 @@ export default function App() {
   const [visibleStats, setVisibleStats] = useState<string[]>(
     initial?.stats ?? DEFAULT_VISIBLE_STATS,
   );
+  const [refreshInterval, setRefreshInterval] = useState(
+    () => Number(localStorage.getItem("ghcd-refresh-interval")) || 60,
+  );
   const [selectedUser, setSelectedUser] = useState<{
     username: string;
     rect: DOMRect;
@@ -132,6 +135,18 @@ export default function App() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   });
+
+  // Auto-refresh on interval
+  useEffect(() => {
+    if (refreshInterval === 0 || !pat.trim() || !users.length) return;
+    const id = setInterval(() => fetchAll(), refreshInterval * 1000);
+    return () => clearInterval(id);
+  });
+
+  function handleSetRefreshInterval(v: number) {
+    setRefreshInterval(v);
+    localStorage.setItem("ghcd-refresh-interval", String(v));
+  }
 
   // Sync state to URL
   useEffect(() => {
@@ -336,6 +351,8 @@ export default function App() {
         onUserAdded={fetchUser}
         visibleStats={visibleStats}
         setVisibleStats={setVisibleStats}
+        refreshInterval={refreshInterval}
+        setRefreshInterval={handleSetRefreshInterval}
       />
 
       {selectedUser && results[selectedUser.username]?.data && (

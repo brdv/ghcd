@@ -8,6 +8,14 @@ const inputClass =
 
 const sectionLabel = "text-xs text-gh-text-secondary font-medium uppercase tracking-wider";
 
+const REFRESH_OPTIONS = [
+  { value: 0, label: "Off" },
+  { value: 60, label: "1 min" },
+  { value: 300, label: "5 min" },
+  { value: 900, label: "15 min" },
+  { value: 1800, label: "30 min" },
+];
+
 interface SettingsDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -24,6 +32,8 @@ interface SettingsDrawerProps {
   onUserAdded: (username: string) => void;
   visibleStats: string[];
   setVisibleStats: (v: string[]) => void;
+  refreshInterval: number;
+  setRefreshInterval: (v: number) => void;
 }
 
 export default function SettingsDrawer({
@@ -42,6 +52,8 @@ export default function SettingsDrawer({
   onUserAdded,
   visibleStats,
   setVisibleStats,
+  refreshInterval,
+  setRefreshInterval,
 }: SettingsDrawerProps) {
   const [userInput, setUserInput] = useState("");
   const [patVisible, setPatVisible] = useState(false);
@@ -213,6 +225,30 @@ export default function SettingsDrawer({
                     }`}
                   >
                     {stat.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Auto-refresh section */}
+          <div className="flex flex-col gap-2">
+            <span className={sectionLabel}>Auto Refresh</span>
+            <div className="flex gap-1.5 flex-wrap">
+              {REFRESH_OPTIONS.map((opt) => {
+                const active = refreshInterval === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setRefreshInterval(opt.value)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border cursor-pointer transition-colors ${
+                      active
+                        ? "bg-gh-accent/20 border-gh-accent text-gh-accent"
+                        : "bg-transparent border-gh-border text-gh-text-secondary hover:border-gh-text-secondary"
+                    }`}
+                  >
+                    {opt.label}
                   </button>
                 );
               })}
