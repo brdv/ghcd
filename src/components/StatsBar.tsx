@@ -18,7 +18,12 @@ export default function StatsBar({ collection, visibleStats }: StatsBarProps) {
           key={s.id}
           className="flex flex-col items-center px-2 sm:px-3.5 py-2 rounded-lg bg-gh-badge flex-1 min-w-0"
         >
-          <span className="text-xl font-bold">{s.getValue(collection)}</span>
+          <span className="text-xl font-bold">
+            {s.getValue(collection)}
+            {s.id === "streak" && (
+              <span className="text-[11px] font-normal text-gh-text-secondary">d</span>
+            )}
+          </span>
           <span className="text-[11px] text-gh-text-secondary mt-0.5">{s.label}</span>
         </div>
       ))}

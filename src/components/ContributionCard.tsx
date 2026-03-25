@@ -148,6 +148,7 @@ function BadgeIcon({ icon }: { icon: string }) {
     issue: "\u{1F41B}", // bug
     repo: "\u{1F5C2}", // folder
     active: "\u{1F525}", // fire
+    streak: "\u{26A1}", // lightning
   };
   return <span className="text-[13px] leading-none">{icons[icon] ?? "\u{1F3C6}"}</span>;
 }

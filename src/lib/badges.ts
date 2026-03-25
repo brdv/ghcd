@@ -1,3 +1,4 @@
+import { computeStreak } from "./streaks";
 import type { UserResult } from "./types";
 
 export interface Badge {
@@ -56,6 +57,13 @@ const BADGE_DEFINITIONS: {
     icon: "active",
     tooltip: "Highest total contributions across all categories",
     getValue: (r) => r.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0,
+  },
+  {
+    id: "streak-star",
+    label: "Streak Star",
+    icon: "streak",
+    tooltip: "Longest consecutive days with contributions",
+    getValue: (r) => (r.data ? computeStreak(r.data.contributionsCollection).longest : 0),
   },
 ];
 
