@@ -158,19 +158,19 @@ export default function ContributionCard({
 }
 
 function formatPeriod(days: number): string {
-  if (days >= 365) {
+  if (days >= 345) {
     const y = Math.round(days / 365);
-    return y === 1 ? "1 year" : `${y} years`;
+    return y <= 1 ? "year" : `${y} years`;
   }
-  if (days >= 30) {
+  if (days >= 25) {
     const m = Math.round(days / 30);
-    return m === 1 ? "1 month" : `${m} months`;
+    return m <= 1 ? "month" : `${m} months`;
   }
   if (days >= 7) {
     const w = Math.round(days / 7);
-    return w === 1 ? "1 week" : `${w} weeks`;
+    return w <= 1 ? "week" : `${w} weeks`;
   }
-  return days === 1 ? "1 day" : `${days} days`;
+  return days === 1 ? "day" : `${days} days`;
 }
 
 function VelocityBadge({ velocity, periodDays }: { velocity: VelocityInfo; periodDays?: number }) {
