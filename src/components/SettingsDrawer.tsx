@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchOrgMembers } from "../lib/github";
 import { ALL_STATS } from "../lib/stats";
+import { useToast } from "../lib/ToastContext";
 import DatePresets from "./DatePresets";
 import UserChip from "./UserChip";
 
@@ -66,6 +67,7 @@ export default function SettingsDrawer({
   setRefreshInterval,
   onFetch,
 }: SettingsDrawerProps) {
+  const { addToast } = useToast();
   const [userInput, setUserInput] = useState("");
   const [patVisible, setPatVisible] = useState(false);
   const [importingOrg, setImportingOrg] = useState(false);
@@ -95,8 +97,8 @@ export default function SettingsDrawer({
         setUsers([...users, ...newUsers]);
         for (const u of newUsers) onUserAdded(u);
       }
-    } catch {
-      // Handled silently — org may not exist or PAT lacks scope
+    } catch (e) {
+      addToast("error", `Failed to import org members: ${(e as Error).message}`);
     } finally {
       setImportingOrg(false);
     }
