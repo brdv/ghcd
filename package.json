@@ -14,7 +14,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@posthog/react": "^1.8.2",
     "html-to-image": "^1.11.13",
+    "posthog-js": "^1.363.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
