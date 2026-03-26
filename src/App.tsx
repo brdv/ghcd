@@ -95,16 +95,20 @@ export default function App() {
       }
       return users;
     }
-    const sorted = [...users].sort((a, b) => {
+    return [...users].sort((a, b) => {
       const totalA =
         results[a]?.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0;
       const totalB =
         results[b]?.data?.contributionsCollection.contributionCalendar.totalContributions ?? 0;
       return totalB - totalA;
     });
-    localStorage.setItem("ghcd-sort-order", JSON.stringify(sorted));
-    return sorted;
   }, [users, results, allLoaded]);
+
+  useEffect(() => {
+    if (allLoaded) {
+      localStorage.setItem("ghcd-sort-order", JSON.stringify(sortedUsers));
+    }
+  }, [allLoaded, sortedUsers]);
 
   function handleSetPat(v: string) {
     setPat(v);
