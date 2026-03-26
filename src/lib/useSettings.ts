@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { DEFAULT_VISIBLE_STATS } from "./stats";
+import { useLocalStorage } from "./useLocalStorage";
 
 interface UrlState {
   users?: string[];
@@ -71,9 +72,7 @@ export function useSettings(): UseSettingsReturn {
   const [visibleStats, setVisibleStats] = useState<string[]>(
     () => initial?.stats ?? DEFAULT_VISIBLE_STATS,
   );
-  const [rawRefreshInterval, setRawRefreshInterval] = useState(
-    () => Number(localStorage.getItem("ghcd-refresh-interval")) || 0,
-  );
+  const [refreshInterval, setRefreshInterval] = useLocalStorage("ghcd-refresh-interval", 0);
 
   const pat = rawPat.trim();
   const org = rawOrg.trim();
@@ -81,11 +80,6 @@ export function useSettings(): UseSettingsReturn {
   const setPat = useCallback((v: string) => {
     setRawPat(v);
     localStorage.setItem("ghcd-pat", v);
-  }, []);
-
-  const setRefreshInterval = useCallback((v: number) => {
-    setRawRefreshInterval(v);
-    localStorage.setItem("ghcd-refresh-interval", String(v));
   }, []);
 
   // Sync state to URL
@@ -116,7 +110,7 @@ export function useSettings(): UseSettingsReturn {
     toDate,
     users,
     visibleStats,
-    refreshInterval: rawRefreshInterval,
+    refreshInterval,
     setPat,
     setOrg: setRawOrg,
     setFromDate,
