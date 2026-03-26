@@ -112,6 +112,16 @@ export default function SettingsDrawer({
     }
   }, [open]);
 
+  // Lock background scroll while drawer is open
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -159,6 +169,8 @@ export default function SettingsDrawer({
       {/* Drawer — full screen on mobile, 340px sidebar on sm+ */}
       <aside
         ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
         inert={!open}
         aria-label="Settings"
         onKeyDown={open ? handleKeyDown : undefined}
