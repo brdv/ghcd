@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ContributionCard from "./components/ContributionCard";
 import SettingsDrawer from "./components/SettingsDrawer";
 
@@ -69,6 +69,9 @@ export default function App() {
   const [visibleStats, setVisibleStats] = useState<string[]>(
     initial?.stats ?? DEFAULT_VISIBLE_STATS,
   );
+  const [refreshInterval, setRefreshInterval] = useState(
+    () => Number(localStorage.getItem("ghcd-refresh-interval")) || 0,
+  );
   const [selectedUser, setSelectedUser] = useState<{
     username: string;
     rect: DOMRect;
@@ -133,6 +136,93 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKey);
   });
 
+  const fetchAll = useCallback(
+    async (overrides?: { from?: string; to?: string }) => {
+      const token = pat.trim();
+      if (!token) {
+        addToast("error", "No Personal Access Token set. Open settings to add one.");
+        setDrawerOpen(true);
+        return;
+      }
+      if (!users.length) {
+        addToast("error", "No users configured. Open settings to add usernames.");
+        setDrawerOpen(true);
+        return;
+      }
+
+      const from = new Date(overrides?.from ?? fromDate).toISOString();
+      const to = new Date(overrides?.to ?? toDate).toISOString();
+      const orgName = org.trim();
+
+      setIsFetching(true);
+
+      // Set all users to loading, preserving previous data so cards don't flash
+      setResults((prev) => {
+        const next: Record<string, UserResult> = {};
+        for (const u of users) {
+          next[u] = { ...prev[u], loading: true };
+        }
+        return next;
+      });
+
+      // Resolve org ID
+      let orgId: string | null = null;
+      if (orgName) {
+        orgId = await resolveOrgId(token, orgName);
+        if (!orgId) {
+          addToast("warning", `Could not resolve org "${orgName}". Fetching without org filter.`);
+        }
+      }
+
+      // Fetch all users in parallel with progressive updates
+      let errorCount = 0;
+      await Promise.all(
+        users.map(async (user) => {
+          try {
+            const data = await fetchUserContributions(token, user, { orgId, from, to });
+            setResults((prev) => ({ ...prev, [user]: { data } }));
+          } catch (e) {
+            errorCount++;
+            setResults((prev) => ({
+              ...prev,
+              [user]: { error: (e as Error).message },
+            }));
+          }
+        }),
+      );
+
+      setIsFetching(false);
+
+      // Defer toast so the card transitions settle before triggering another render
+      requestAnimationFrame(() => {
+        if (errorCount > 0) {
+          addToast(
+            "error",
+            `Failed to fetch data for ${errorCount} user${errorCount > 1 ? "s" : ""}. Check the cards for details.`,
+          );
+        } else {
+          addToast(
+            "success",
+            `Fetched contributions for ${users.length} user${users.length > 1 ? "s" : ""}.`,
+          );
+        }
+      });
+    },
+    [addToast, fromDate, org.trim, pat.trim, toDate, users],
+  );
+
+  // Auto-refresh on interval
+  useEffect(() => {
+    if (refreshInterval === 0 || !pat.trim() || !users.length) return;
+    const id = setInterval(() => fetchAll(), refreshInterval * 1000);
+    return () => clearInterval(id);
+  }, [refreshInterval, pat, users, fetchAll]);
+
+  function handleSetRefreshInterval(v: number) {
+    setRefreshInterval(v);
+    localStorage.setItem("ghcd-refresh-interval", String(v));
+  }
+
   // Sync state to URL
   useEffect(() => {
     const state: UrlState = {};
@@ -155,78 +245,6 @@ export default function App() {
     }
     window.history.replaceState(null, "", url.toString());
   }, [users, org, fromDate, toDate, visibleStats]);
-
-  async function fetchAll(overrides?: { from?: string; to?: string }) {
-    const token = pat.trim();
-    if (!token) {
-      addToast("error", "No Personal Access Token set. Open settings to add one.");
-      setDrawerOpen(true);
-      return;
-    }
-    if (!users.length) {
-      addToast("error", "No users configured. Open settings to add usernames.");
-      setDrawerOpen(true);
-      return;
-    }
-
-    const from = new Date(overrides?.from ?? fromDate).toISOString();
-    const to = new Date(overrides?.to ?? toDate).toISOString();
-    const orgName = org.trim();
-
-    setIsFetching(true);
-
-    // Set all users to loading, preserving previous data so cards don't flash
-    setResults((prev) => {
-      const next: Record<string, UserResult> = {};
-      for (const u of users) {
-        next[u] = { ...prev[u], loading: true };
-      }
-      return next;
-    });
-
-    // Resolve org ID
-    let orgId: string | null = null;
-    if (orgName) {
-      orgId = await resolveOrgId(token, orgName);
-      if (!orgId) {
-        addToast("warning", `Could not resolve org "${orgName}". Fetching without org filter.`);
-      }
-    }
-
-    // Fetch all users in parallel with progressive updates
-    let errorCount = 0;
-    await Promise.all(
-      users.map(async (user) => {
-        try {
-          const data = await fetchUserContributions(token, user, { orgId, from, to });
-          setResults((prev) => ({ ...prev, [user]: { data } }));
-        } catch (e) {
-          errorCount++;
-          setResults((prev) => ({
-            ...prev,
-            [user]: { error: (e as Error).message },
-          }));
-        }
-      }),
-    );
-
-    setIsFetching(false);
-
-    // Defer toast so the card transitions settle before triggering another render
-    requestAnimationFrame(() => {
-      if (errorCount > 0) {
-        addToast(
-          "error",
-          `Failed to fetch data for ${errorCount} user${errorCount > 1 ? "s" : ""}. Check the cards for details.`,
-        );
-      } else {
-        addToast(
-          "success",
-          `Fetched contributions for ${users.length} user${users.length > 1 ? "s" : ""}.`,
-        );
-      }
-    });
-  }
 
   async function fetchUser(username: string) {
     const token = pat.trim();
@@ -336,6 +354,8 @@ export default function App() {
         onUserAdded={fetchUser}
         visibleStats={visibleStats}
         setVisibleStats={setVisibleStats}
+        refreshInterval={refreshInterval}
+        setRefreshInterval={handleSetRefreshInterval}
       />
 
       {selectedUser && results[selectedUser.username]?.data && (
