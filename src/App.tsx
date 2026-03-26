@@ -72,18 +72,18 @@ function defaultToDate(): string {
 }
 
 export default function App() {
-  const initial = readStateFromUrl();
+  const [initial] = useState(() => readStateFromUrl());
 
   const [pat, setPat] = useState(() => localStorage.getItem("ghcd-pat") ?? "");
-  const [org, setOrg] = useState(initial?.org ?? "");
-  const [fromDate, setFromDate] = useState(initial?.from ?? defaultFromDate);
-  const [toDate, setToDate] = useState(initial?.to ?? defaultToDate);
-  const [users, setUsers] = useState<string[]>(initial?.users ?? []);
+  const [org, setOrg] = useState(() => initial?.org ?? "");
+  const [fromDate, setFromDate] = useState(() => initial?.from ?? defaultFromDate());
+  const [toDate, setToDate] = useState(() => initial?.to ?? defaultToDate());
+  const [users, setUsers] = useState<string[]>(() => initial?.users ?? []);
   const [results, setResults] = useState<Record<string, UserResult>>({});
   const [isFetching, setIsFetching] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [visibleStats, setVisibleStats] = useState<string[]>(
-    initial?.stats ?? DEFAULT_VISIBLE_STATS,
+    () => initial?.stats ?? DEFAULT_VISIBLE_STATS,
   );
   const [refreshInterval, setRefreshInterval] = useState(
     () => Number(localStorage.getItem("ghcd-refresh-interval")) || 0,
