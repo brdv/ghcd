@@ -25,10 +25,10 @@ export function getDatePresets(): DatePreset[] {
   weekAgo.setDate(weekAgo.getDate() - 7);
 
   const monthAgo = new Date(now);
-  monthAgo.setMonth(monthAgo.getMonth() - 1);
+  monthAgo.setDate(monthAgo.getDate() - 30);
 
   const quarterAgo = new Date(now);
-  quarterAgo.setMonth(quarterAgo.getMonth() - 3);
+  quarterAgo.setDate(quarterAgo.getDate() - 90);
 
   const yearAgo = new Date(now);
   yearAgo.setFullYear(yearAgo.getFullYear() - 1);
