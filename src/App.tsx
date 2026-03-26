@@ -271,10 +271,8 @@ export default function App() {
     if (org.trim()) state.org = org.trim();
     if (fromDate !== DEFAULT_FROM_DATE) state.from = fromDate;
     if (toDate !== DEFAULT_TO_DATE) state.to = toDate;
-    if (
-      visibleStats.length !== DEFAULT_VISIBLE_STATS.length ||
-      visibleStats.some((s, i) => s !== DEFAULT_VISIBLE_STATS[i])
-    ) {
+    const defaultSet = new Set(DEFAULT_VISIBLE_STATS);
+    if (visibleStats.length !== defaultSet.size || visibleStats.some((s) => !defaultSet.has(s))) {
       state.stats = visibleStats;
     }
 
