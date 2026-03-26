@@ -377,6 +377,7 @@ export default function SettingsDrawer({
                     key={opt.value}
                     type="button"
                     onClick={() => setRefreshInterval(opt.value)}
+                    aria-pressed={active}
                     className={`px-3 py-1 rounded-full text-xs font-medium border cursor-pointer transition-colors ${
                       active
                         ? "bg-gh-accent/20 border-gh-accent text-gh-accent"
