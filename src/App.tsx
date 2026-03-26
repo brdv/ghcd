@@ -311,9 +311,9 @@ export default function App() {
       <SettingsDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        pat={pat}
+        pat={pat.trim()}
         setPat={handleSetPat}
-        org={org}
+        org={org.trim()}
         setOrg={setOrg}
         fromDate={fromDate}
         setFromDate={setFromDate}

@@ -62,10 +62,10 @@ export default function SettingsDrawer({
   }
 
   async function importOrgMembers() {
-    if (!pat.trim() || !org.trim()) return;
+    if (!pat || !org) return;
     setImportingOrg(true);
     try {
-      const members = await fetchOrgMembers(pat.trim(), org.trim());
+      const members = await fetchOrgMembers(pat, org);
       const newUsers = members.filter((m) => !users.includes(m));
       if (newUsers.length > 0) {
         setUsers([...users, ...newUsers]);
@@ -73,8 +73,9 @@ export default function SettingsDrawer({
       }
     } catch {
       // Handled silently — org may not exist or PAT lacks scope
+    } finally {
+      setImportingOrg(false);
     }
-    setImportingOrg(false);
   }
 
   return (
@@ -193,7 +194,7 @@ export default function SettingsDrawer({
                 Add
               </button>
             </div>
-            {org.trim() && pat.trim() && (
+            {org && pat && (
               <button
                 type="button"
                 onClick={importOrgMembers}
@@ -204,7 +205,7 @@ export default function SettingsDrawer({
                     : "text-gh-accent hover:text-gh-accent-hover"
                 }`}
               >
-                {importingOrg ? "Importing..." : `Import members from ${org.trim()}`}
+                {importingOrg ? "Importing..." : `Import members from ${org}`}
               </button>
             )}
             {users.length > 0 && (
