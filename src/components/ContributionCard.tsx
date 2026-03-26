@@ -201,13 +201,11 @@ function VelocityBadge({ velocity, periodDays }: { velocity: VelocityInfo; perio
         </div>
       }
     >
-      <button
-        type="button"
-        className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-semibold border-none cursor-default ${color} ${bg}`}
-        onClick={(e) => e.stopPropagation()}
+      <span
+        className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${color} ${bg}`}
       >
         {arrow} {pct}%
-      </button>
+      </span>
     </Tooltip>
   );
 }
