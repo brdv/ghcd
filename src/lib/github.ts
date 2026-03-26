@@ -39,7 +39,7 @@ export async function gql<T>(
   const res = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
-      Authorization: `bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ query, variables }),
