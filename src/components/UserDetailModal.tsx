@@ -53,7 +53,8 @@ export default function UserDetailModal({
     triggerRef.current = document.activeElement;
   }, []);
 
-  // Morph in, then focus the close button once expanded
+  // Morph in: double rAF ensures the browser has painted the initial (card-sized)
+  // frame before we transition to the expanded state, so the CSS transition animates.
   useEffect(() => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setPhase("open"));
