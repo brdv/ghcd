@@ -22,6 +22,14 @@ const QUERY_ORG_MEMBERS = `query($org:String!,$cursor:String){
   }
 }`;
 
+export const QUERY_USER_TOTAL = `query($user:String!,$orgId:ID,$from:DateTime!,$to:DateTime!){
+  user(login:$user){
+    contributionsCollection(organizationID:$orgId,from:$from,to:$to){
+      contributionCalendar{totalContributions}
+    }
+  }
+}`;
+
 export async function gql<T>(
   token: string,
   query: string,

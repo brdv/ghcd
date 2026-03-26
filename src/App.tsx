@@ -154,8 +154,17 @@ export default function App() {
         return;
       }
 
-      const from = new Date(overrides?.from ?? fromDate).toISOString();
-      const to = new Date(overrides?.to ?? toDate).toISOString();
+      const fromMs = new Date(overrides?.from ?? fromDate).getTime();
+      const toMs = new Date(overrides?.to ?? toDate).getTime();
+      const from = new Date(fromMs).toISOString();
+      const to = new Date(toMs).toISOString();
+
+      // Previous period: equally-sized window ending where the current one starts
+      const periodMs = toMs - fromMs;
+      const periodDays = Math.round(periodMs / 86_400_000);
+      const prevFrom = new Date(fromMs - periodMs).toISOString();
+      const prevTo = new Date(fromMs).toISOString();
+
       const orgName = org.trim();
 
       setIsFetching(true);
@@ -183,8 +192,14 @@ export default function App() {
       await Promise.all(
         users.map(async (user) => {
           try {
-            const data = await fetchUserContributions(token, user, { orgId, from, to });
-            setResults((prev) => ({ ...prev, [user]: { data } }));
+            const [data, previousPeriodTotal] = await Promise.all([
+              fetchUserContributions(token, user, { orgId, from, to }),
+              fetchPreviousPeriodTotal(token, user, { orgId, from: prevFrom, to: prevTo }),
+            ]);
+            setResults((r) => ({
+              ...r,
+              [user]: { data, previousPeriodTotal, periodDays },
+            }));
           } catch (e) {
             errorCount++;
             setResults((prev) => ({
