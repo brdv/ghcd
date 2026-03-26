@@ -1,3 +1,4 @@
+import { computeStreak } from "./streaks";
 import type { ContributionDay, ContributionWeek } from "./types";
 
 export interface ContributionInsights {
@@ -23,29 +24,8 @@ export function computeInsights(weeks: ContributionWeek[]): ContributionInsights
     }
   }
 
-  // Streaks (sorted chronologically)
-  const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
-  let currentStreak = 0;
-  let longestStreak = 0;
-  let streak = 0;
-
-  for (const d of sorted) {
-    if (d.contributionCount > 0) {
-      streak++;
-      longestStreak = Math.max(longestStreak, streak);
-    } else {
-      streak = 0;
-    }
-  }
-
-  // Current streak: count backwards from last day
-  for (let i = sorted.length - 1; i >= 0; i--) {
-    if (sorted[i].contributionCount > 0) {
-      currentStreak++;
-    } else {
-      break;
-    }
-  }
+  // Streaks — single source of truth from streaks.ts (correctly skips future dates)
+  const { current: currentStreak, longest: longestStreak } = computeStreak(weeks);
 
   // Busiest day of week
   const dayTotals = Array(7).fill(0);

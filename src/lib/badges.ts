@@ -63,7 +63,8 @@ const BADGE_DEFINITIONS: {
     label: "Streak Star",
     icon: "streak",
     tooltip: "Longest consecutive days with contributions",
-    getValue: (r) => (r.data ? computeStreak(r.data.contributionsCollection).longest : 0),
+    getValue: (r) =>
+      r.data ? computeStreak(r.data.contributionsCollection.contributionCalendar.weeks).longest : 0,
   },
 ];
 

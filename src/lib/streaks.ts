@@ -1,4 +1,4 @@
-import type { ContributionsCollection } from "./types";
+import type { ContributionWeek } from "./types";
 
 export interface StreakInfo {
   longest: number;
@@ -9,8 +9,8 @@ export interface StreakInfo {
  * Compute the longest and current contribution streaks from calendar data.
  * Days are ordered chronologically across weeks.
  */
-export function computeStreak(collection: ContributionsCollection): StreakInfo {
-  const days = collection.contributionCalendar.weeks.flatMap((w) => w.contributionDays);
+export function computeStreak(weeks: ContributionWeek[]): StreakInfo {
+  const days = weeks.flatMap((w) => w.contributionDays);
 
   // Longest streak: scan forward through all days
   let longest = 0;

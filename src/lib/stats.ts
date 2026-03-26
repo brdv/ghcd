@@ -13,7 +13,11 @@ export const ALL_STATS: StatDefinition[] = [
   { id: "reviews", label: "Reviews", getValue: (c) => c.totalPullRequestReviewContributions },
   { id: "issues", label: "Issues", getValue: (c) => c.totalIssueContributions },
   { id: "repos", label: "Repos", getValue: (c) => c.commitContributionsByRepository.length },
-  { id: "streak", label: "Streak", getValue: (c) => computeStreak(c).longest },
+  {
+    id: "streak",
+    label: "Streak",
+    getValue: (c) => computeStreak(c.contributionCalendar.weeks).longest,
+  },
 ];
 
 export const DEFAULT_VISIBLE_STATS = ALL_STATS.map((s) => s.id);

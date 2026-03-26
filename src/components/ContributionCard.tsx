@@ -31,7 +31,9 @@ export default function ContributionCard({
   const totalContributions = collection?.contributionCalendar.totalContributions;
   const velocity = collection ? computeVelocity(collection, result.previousPeriodTotal) : null;
   const isClickable = !!result.data;
-  const currentStreak = collection ? computeStreak(collection).current : 0;
+  const currentStreak = collection
+    ? computeStreak(collection.contributionCalendar.weeks).current
+    : 0;
   const hasStreak = currentStreak > 2;
 
   function handleSelect() {
