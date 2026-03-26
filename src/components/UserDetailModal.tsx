@@ -6,6 +6,8 @@ import DayOfWeekChart from "./DayOfWeekChart";
 import Heatmap from "./Heatmap";
 import StatsBar from "./StatsBar";
 
+const MORPH_DURATION_MS = 350;
+
 type Phase = "morph-in" | "open" | "morph-out" | "closed";
 
 interface UserDetailModalProps {
@@ -61,7 +63,7 @@ export default function UserDetailModal({
   useEffect(() => {
     if (phase === "open") {
       // Wait for the morph transition to settle before focusing
-      const timer = setTimeout(() => closeButtonRef.current?.focus(), 360);
+      const timer = setTimeout(() => closeButtonRef.current?.focus(), MORPH_DURATION_MS + 10);
       return () => clearTimeout(timer);
     }
   }, [phase]);
@@ -75,7 +77,7 @@ export default function UserDetailModal({
         triggerRef.current.focus();
       }
       onClose();
-    }, 350);
+    }, MORPH_DURATION_MS);
   }, [onClose]);
 
   // Focus trap: cycle Tab / Shift+Tab within the dialog
@@ -185,7 +187,7 @@ export default function UserDetailModal({
         className="bg-gh-card border border-gh-border shadow-2xl"
         style={{
           ...targetStyle,
-          transition: "all 350ms cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: `all ${MORPH_DURATION_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`,
           zIndex: 41,
         }}
       >
