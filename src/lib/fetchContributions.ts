@@ -25,7 +25,7 @@ export async function fetchUserContributions(
   opts: { orgId: string | null; from: string; to: string },
   signal?: AbortSignal,
 ): Promise<GitHubUser> {
-  const d = await gql<{ user: GitHubUser }>(
+  const d = await gql<{ user: GitHubUser | null }>(
     token,
     QUERY_USER,
     {
@@ -36,6 +36,9 @@ export async function fetchUserContributions(
     },
     signal,
   );
+  if (!d.user) {
+    throw new Error(`User "${username}" not found`);
+  }
   return d.user;
 }
 
@@ -51,7 +54,7 @@ export async function fetchPreviousPeriodTotal(
         contributionsCollection: {
           contributionCalendar: { totalContributions: number };
         };
-      };
+      } | null;
     }>(
       token,
       QUERY_USER_TOTAL,
@@ -63,7 +66,7 @@ export async function fetchPreviousPeriodTotal(
       },
       signal,
     );
-    return d.user.contributionsCollection.contributionCalendar.totalContributions;
+    return d.user?.contributionsCollection.contributionCalendar.totalContributions;
   } catch {
     return undefined;
   }

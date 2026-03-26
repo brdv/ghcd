@@ -29,7 +29,19 @@ function encodeState(state: UrlState): string {
 
 function decodeState(encoded: string): UrlState | null {
   try {
-    return JSON.parse(atob(encoded));
+    const raw = JSON.parse(atob(encoded));
+    if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return null;
+    const state: UrlState = {};
+    if (Array.isArray(raw.users) && raw.users.every((u: unknown) => typeof u === "string")) {
+      state.users = raw.users;
+    }
+    if (typeof raw.org === "string") state.org = raw.org;
+    if (typeof raw.from === "string") state.from = raw.from;
+    if (typeof raw.to === "string") state.to = raw.to;
+    if (Array.isArray(raw.stats) && raw.stats.every((s: unknown) => typeof s === "string")) {
+      state.stats = raw.stats;
+    }
+    return Object.keys(state).length > 0 ? state : null;
   } catch {
     return null;
   }
