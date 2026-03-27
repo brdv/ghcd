@@ -21,6 +21,11 @@ export interface ContributionCalendar {
   weeks: ContributionWeek[];
 }
 
+export interface LanguageEdge {
+  size: number;
+  node: { name: string; color: string | null };
+}
+
 export interface RepoContribution {
   repository: { name: string; nameWithOwner: string; url: string };
   contributions: { totalCount: number };
@@ -45,6 +50,7 @@ export interface GitHubUser {
   createdAt: string;
   followers: { totalCount: number };
   following: { totalCount: number };
+  repositories: { nodes: { languages: { edges: LanguageEdge[] } }[] };
   contributionsCollection: ContributionsCollection;
 }
 

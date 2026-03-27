@@ -55,6 +55,7 @@ export function user(col: ContributionsCollection): GitHubUser {
     createdAt: "2020-01-01T00:00:00Z",
     followers: { totalCount: 0 },
     following: { totalCount: 0 },
+    repositories: { nodes: [] },
     contributionsCollection: col,
   };
 }
