@@ -1,6 +1,7 @@
 import { usePostHog } from "@posthog/react";
 import { useCallback, useState } from "react";
 import ContributionCard from "./components/ContributionCard";
+import InstallPrompt from "./components/InstallPrompt";
 import SettingsDrawer from "./components/SettingsDrawer";
 import Toolbar from "./components/Toolbar";
 import UserDetailModal from "./components/UserDetailModal";
@@ -189,6 +190,8 @@ export default function App() {
           onClose={() => setSelectedUser(null)}
         />
       )}
+
+      <InstallPrompt />
 
       <footer className="mt-auto pt-12 py-6 text-center text-xs text-gh-text-secondary border-t border-gh-border">
         <a
