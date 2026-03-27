@@ -7,7 +7,6 @@ const commitHash = execSync("git rev-parse --short HEAD").toString().trim();
 
 export default defineConfig({
   base: "/",
-  plugins: [react()],
   define: {
     __COMMIT_HASH__: JSON.stringify(commitHash),
   },
