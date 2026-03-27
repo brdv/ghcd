@@ -51,6 +51,10 @@ bun run format         # format only
 - Labels must wrap or be associated with their inputs
 - `biome-ignore` comments require a reason suffix
 
+## README
+
+- When adding user-facing features, updating commands, or changing the stack, update `README.md` to reflect the changes
+
 ## Things to avoid
 
 - Don't use npm — use bun
