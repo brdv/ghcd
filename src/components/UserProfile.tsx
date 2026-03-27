@@ -4,6 +4,7 @@ import type { GitHubUser } from "../lib/types";
 import { computeVelocity } from "../lib/velocity";
 import DayOfWeekChart from "./DayOfWeekChart";
 import Heatmap from "./Heatmap";
+import LanguageBar from "./LanguageBar";
 import StatsBar from "./StatsBar";
 
 interface UserProfileProps {
@@ -121,6 +122,14 @@ export default function UserProfile({ username, data, previousPeriodTotal }: Use
               </a>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Language breakdown */}
+      {data.repositories.nodes.length > 0 && (
+        <div>
+          <h3 className="text-sm font-medium text-gh-text-secondary mb-2">Languages</h3>
+          <LanguageBar repositories={data.repositories.nodes} />
         </div>
       )}
 

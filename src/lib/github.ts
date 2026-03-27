@@ -4,6 +4,9 @@ export const QUERY_USER = `query($user:String!,$orgId:ID,$from:DateTime!,$to:Dat
   user(login:$user){
     avatarUrl bio company location websiteUrl createdAt
     followers{totalCount} following{totalCount}
+    repositories(first:20,ownerAffiliations:[OWNER,COLLABORATOR,ORGANIZATION_MEMBER],orderBy:{field:PUSHED_AT,direction:DESC}){
+      nodes{languages(first:5,orderBy:{field:SIZE,direction:DESC}){edges{size node{name color}}}}
+    }
     contributionsCollection(organizationID:$orgId,from:$from,to:$to){
       totalCommitContributions totalPullRequestContributions totalPullRequestReviewContributions
       totalIssueContributions totalRepositoryContributions
