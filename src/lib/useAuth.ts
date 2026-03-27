@@ -49,9 +49,6 @@ export function useAuth(pat: string): UseAuthReturn {
     const state = sessionStorage.getItem(SESSION_CALLBACK_STATE);
     if (!code || state === null) return;
 
-    sessionStorage.removeItem(SESSION_CALLBACK_CODE);
-    sessionStorage.removeItem(SESSION_CALLBACK_STATE);
-
     setIsAuthenticating(true);
     setAuthError(null);
 
@@ -69,7 +66,11 @@ export function useAuth(pat: string): UseAuthReturn {
         captureAnalyticsEvent(posthog, analyticsEvents.oauthSignInFailed);
         addToast("error", `Sign in failed: ${(err as Error).message}`);
       })
-      .finally(() => setIsAuthenticating(false));
+      .finally(() => {
+        sessionStorage.removeItem(SESSION_CALLBACK_CODE);
+        sessionStorage.removeItem(SESSION_CALLBACK_STATE);
+        setIsAuthenticating(false);
+      });
   }, [addToast, posthog]);
 
   // Update method when pat changes (and not using oauth)
