@@ -107,32 +107,33 @@ export function useContributions({
         }
       }
 
-      // Fetch all users in parallel with progressive updates
+      // Fetch all users in parallel, then apply results in a single batch
+      // so cards and badges transition from skeleton to data simultaneously
       let errorCount = 0;
-      await Promise.all(
+      const settled = await Promise.allSettled(
         users.map(async (user) => {
-          try {
-            const [data, previousPeriodTotal] = await Promise.all([
-              fetchUserContributions(pat, user, { orgId, from, to }, signal),
-              fetchPreviousPeriodTotal(pat, user, { orgId, from: prevFrom, to: prevTo }, signal),
-            ]);
-            if (signal.aborted) return;
-            setResults((r) => ({
-              ...r,
-              [user]: { data, previousPeriodTotal, periodDays },
-            }));
-          } catch (e) {
-            if (signal.aborted) return;
-            errorCount++;
-            setResults((prev) => ({
-              ...prev,
-              [user]: { error: (e as Error).message },
-            }));
-          }
+          const [data, previousPeriodTotal] = await Promise.all([
+            fetchUserContributions(pat, user, { orgId, from, to }, signal),
+            fetchPreviousPeriodTotal(pat, user, { orgId, from: prevFrom, to: prevTo }, signal),
+          ]);
+          return { user, data, previousPeriodTotal };
         }),
       );
 
       if (signal.aborted) return;
+
+      const batch: Record<string, UserResult> = {};
+      for (let i = 0; i < users.length; i++) {
+        const result = settled[i];
+        if (result.status === "fulfilled") {
+          const { data, previousPeriodTotal } = result.value;
+          batch[users[i]] = { data, previousPeriodTotal, periodDays };
+        } else {
+          errorCount++;
+          batch[users[i]] = { error: result.reason?.message ?? String(result.reason) };
+        }
+      }
+      setResults((prev) => ({ ...prev, ...batch }));
       setIsFetching(false);
 
       // Defer toast so the card transitions settle before triggering another render
