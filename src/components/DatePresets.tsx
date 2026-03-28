@@ -3,7 +3,7 @@ import { getDatePresets } from "../lib/datePresets";
 import PillButton from "./PillButton";
 
 const inputClass =
-  "px-3 py-2 rounded-lg border border-gh-border bg-gh-card text-gh-text-primary text-sm outline-none focus:border-gh-accent focus-visible:ring-2 focus-visible:ring-gh-accent focus-visible:ring-offset-1 focus-visible:ring-offset-gh-bg";
+  "px-3 py-2 rounded-lg border border-gh-border bg-gh-card text-gh-text-primary text-base outline-none focus:border-gh-accent focus-visible:ring-2 focus-visible:ring-gh-accent focus-visible:ring-offset-1 focus-visible:ring-offset-gh-bg";
 
 interface DatePresetsProps {
   fromDate: string;
