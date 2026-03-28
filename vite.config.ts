@@ -76,6 +76,6 @@ export default defineConfig({
     globals: true,
   },
   preview: {
-    allowedHosts: true
-  }
+    allowedHosts: true,
+  },
 });
