@@ -26,7 +26,7 @@ export function useSortedUsers(users: string[], results: Record<string, UserResu
   }, [users, results, allLoaded, savedOrder]);
 
   useEffect(() => {
-    if (allLoaded) {
+    if (allLoaded && !sortedUsers.length) {
       setSavedOrder(sortedUsers);
     }
   }, [allLoaded, sortedUsers, setSavedOrder]);
