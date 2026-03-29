@@ -58,6 +58,8 @@ export interface UserResult {
   loading?: boolean;
   error?: string;
   data?: GitHubUser;
+  /** True when data was fetched from public REST API (limited to public activity). */
+  needsAuth?: boolean;
   /** Total contributions in the equally-sized period before the selected range. */
   previousPeriodTotal?: number;
   /** Length of the selected period in days. */

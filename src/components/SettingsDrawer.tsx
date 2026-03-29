@@ -1,7 +1,7 @@
 import { usePostHog } from "@posthog/react";
 import { useState } from "react";
 import { analyticsEvents, captureAnalyticsEvent } from "../lib/analytics";
-import { fetchOrgMembers } from "../lib/github";
+import { fetchOrgMembers } from "../lib/githubGraphQL";
 import { ALL_STATS } from "../lib/stats";
 import { useToast } from "../lib/ToastContext";
 import type { FetchAllOptions } from "../lib/useContributions";
@@ -109,6 +109,24 @@ export default function SettingsDrawer({
     }
   }
 
+  function toggleStat(id: string) {
+    setVisibleStats(
+      visibleStats.includes(id) ? visibleStats.filter((s) => s !== id) : [...visibleStats, id],
+    );
+  }
+
+  function handleDatePresetSelect(from: string, to: string) {
+    onFetch({ from, to, trigger: "date-preset" });
+  }
+
+  function handleUserInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setUserInput(e.target.value);
+  }
+
+  function handleUserInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") addUser();
+  }
+
   return (
     <>
       {/* Backdrop */}
@@ -158,7 +176,6 @@ export default function SettingsDrawer({
         </div>
 
         <div className="flex flex-col overflow-y-auto flex-1">
-          {/* --- Group 1: Authentication --- */}
           <div className="px-5 pt-5 pb-4 flex flex-col gap-2">
             <span className={sectionLabel}>Authentication</span>
             <AuthSection
@@ -172,138 +189,114 @@ export default function SettingsDrawer({
             />
           </div>
 
-          {!token && (
-            <p className="px-5 pb-5 text-[12px] text-gh-text-secondary text-center">
-              Sign in to configure your dashboard.
-            </p>
-          )}
+          <div className={`${sectionDivider} px-5 pt-5 pb-5 flex flex-col gap-3`}>
+            <label htmlFor="user-input" className="text-sm text-gh-text-primary font-semibold">
+              Users
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="user-input"
+                value={userInput}
+                onChange={handleUserInputChange}
+                onKeyDown={handleUserInputKeyDown}
+                placeholder="Add username..."
+                className={`${inputClass} flex-1`}
+              />
+              <button
+                type="button"
+                onClick={addUser}
+                className="px-3 py-2 rounded-lg border-none cursor-pointer font-semibold text-sm transition-colors hover:opacity-90 bg-gh-accent text-white focus-visible:ring-2 focus-visible:ring-gh-accent focus-visible:ring-offset-1 focus-visible:ring-offset-gh-bg"
+              >
+                Add
+              </button>
+            </div>
 
-          {token && (
-            <>
-              {/* --- Group 2: Users (dominant section) --- */}
-              <div className={`${sectionDivider} px-5 pt-5 pb-5 flex flex-col gap-3`}>
-                <label htmlFor="user-input" className="text-sm text-gh-text-primary font-semibold">
-                  Users
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    id="user-input"
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") addUser();
-                    }}
-                    placeholder="Add username..."
-                    className={`${inputClass} flex-1`}
-                  />
-                  <button
-                    type="button"
-                    onClick={addUser}
-                    className="px-3 py-2 rounded-lg border-none cursor-pointer font-semibold text-sm transition-colors hover:opacity-90 bg-gh-accent text-white focus-visible:ring-2 focus-visible:ring-gh-accent focus-visible:ring-offset-1 focus-visible:ring-offset-gh-bg"
+            {users.length > 0 && (
+              <div className="flex gap-2 flex-wrap pt-1">
+                {users.map((u) => (
+                  <UserChip key={u} username={u} onRemove={() => removeUser(u)} />
+                ))}
+              </div>
+            )}
+            {users.length === 0 && (
+              <p className="text-[12px] text-gh-text-secondary">
+                No users added yet. Add GitHub usernames above.
+              </p>
+            )}
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="org-input" className={sectionLabel}>
+                Organization
+              </label>
+              <input
+                id="org-input"
+                value={org}
+                onChange={(e) => setOrg(e.target.value)}
+                placeholder={token ? "Optional — filter by org" : "Sign in to filter by org"}
+                disabled={!token}
+                className={`${inputClass} w-full ${!token ? "opacity-50" : ""}`}
+              />
+            </div>
+
+            {org && token && (
+              <button
+                type="button"
+                onClick={importOrgMembers}
+                disabled={importingOrg}
+                className={`text-xs font-medium transition-colors cursor-pointer bg-transparent border-none p-0 rounded focus-visible:ring-2 focus-visible:ring-gh-accent ${
+                  importingOrg
+                    ? "text-gh-text-secondary opacity-50"
+                    : "text-gh-accent hover:text-gh-accent-hover"
+                }`}
+              >
+                {importingOrg ? "Importing..." : `Import members from ${org}`}
+              </button>
+            )}
+          </div>
+
+          <div className={`${sectionDivider} px-5 pt-5 pb-5 flex flex-col gap-3`}>
+            <span className="text-sm text-gh-text-primary font-semibold">Date Range</span>
+            <DatePresets
+              fromDate={fromDate}
+              toDate={toDate}
+              setFromDate={setFromDate}
+              setToDate={setToDate}
+              onSelect={handleDatePresetSelect}
+            />
+          </div>
+
+          <div className={`${sectionDivider} px-5 pt-5 pb-5 flex flex-col gap-4`}>
+            <span className="text-sm text-gh-text-primary font-semibold">Display</span>
+            <div className="flex flex-col gap-2">
+              <span className={sectionLabel}>Visible Stats</span>
+              <div className="flex gap-1.5 flex-wrap">
+                {ALL_STATS.map((stat) => (
+                  <PillButton
+                    key={stat.id}
+                    active={visibleStats.includes(stat.id)}
+                    onClick={() => toggleStat(stat.id)}
                   >
-                    Add
-                  </button>
-                </div>
+                    {stat.label}
+                  </PillButton>
+                ))}
+              </div>
+            </div>
 
-                {users.length > 0 && (
-                  <div className="flex gap-2 flex-wrap pt-1">
-                    {users.map((u) => (
-                      <UserChip key={u} username={u} onRemove={() => removeUser(u)} />
-                    ))}
-                  </div>
-                )}
-                {users.length === 0 && (
-                  <p className="text-[12px] text-gh-text-secondary">
-                    No users added yet. Add GitHub usernames above.
-                  </p>
-                )}
-
-                {/* Organization */}
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="org-input" className={sectionLabel}>
-                    Organization
-                  </label>
-                  <input
-                    id="org-input"
-                    value={org}
-                    onChange={(e) => setOrg(e.target.value)}
-                    placeholder="Optional — filter by org"
-                    className={`${inputClass} w-full`}
-                  />
-                </div>
-
-                {org && token && (
-                  <button
-                    type="button"
-                    onClick={importOrgMembers}
-                    disabled={importingOrg}
-                    className={`text-xs font-medium transition-colors cursor-pointer bg-transparent border-none p-0 rounded focus-visible:ring-2 focus-visible:ring-gh-accent ${
-                      importingOrg
-                        ? "text-gh-text-secondary opacity-50"
-                        : "text-gh-accent hover:text-gh-accent-hover"
-                    }`}
+            <div className="flex flex-col gap-2">
+              <span className={sectionLabel}>Auto Refresh</span>
+              <div className="flex gap-1.5 flex-wrap">
+                {REFRESH_OPTIONS.map((opt) => (
+                  <PillButton
+                    key={opt.value}
+                    active={refreshInterval === opt.value}
+                    onClick={() => setRefreshInterval(opt.value)}
                   >
-                    {importingOrg ? "Importing..." : `Import members from ${org}`}
-                  </button>
-                )}
+                    {opt.label}
+                  </PillButton>
+                ))}
               </div>
-
-              {/* --- Group 3: Date range --- */}
-              <div className={`${sectionDivider} px-5 pt-5 pb-5 flex flex-col gap-3`}>
-                <span className="text-sm text-gh-text-primary font-semibold">Date Range</span>
-                <DatePresets
-                  fromDate={fromDate}
-                  toDate={toDate}
-                  setFromDate={setFromDate}
-                  setToDate={setToDate}
-                  onSelect={(from, to) => onFetch({ from, to, trigger: "date-preset" })}
-                />
-              </div>
-
-              {/* --- Group 4: Display preferences (secondary) --- */}
-              <div className={`${sectionDivider} px-5 pt-5 pb-5 flex flex-col gap-4`}>
-                <span className="text-sm text-gh-text-primary font-semibold">Display</span>
-                <div className="flex flex-col gap-2">
-                  <span className={sectionLabel}>Visible Stats</span>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {ALL_STATS.map((stat) => {
-                      const active = visibleStats.includes(stat.id);
-                      return (
-                        <PillButton
-                          key={stat.id}
-                          active={active}
-                          onClick={() => {
-                            if (active) {
-                              setVisibleStats(visibleStats.filter((s) => s !== stat.id));
-                            } else {
-                              setVisibleStats([...visibleStats, stat.id]);
-                            }
-                          }}
-                        >
-                          {stat.label}
-                        </PillButton>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <span className={sectionLabel}>Auto Refresh</span>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {REFRESH_OPTIONS.map((opt) => (
-                      <PillButton
-                        key={opt.value}
-                        active={refreshInterval === opt.value}
-                        onClick={() => setRefreshInterval(opt.value)}
-                      >
-                        {opt.label}
-                      </PillButton>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </aside>
     </>

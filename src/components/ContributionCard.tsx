@@ -16,6 +16,7 @@ interface ContributionCardProps {
   badges: Badge[];
   visibleStats: string[];
   onSelect?: (rect: DOMRect) => void;
+  onSignIn?: () => void;
 }
 
 export default function ContributionCard({
@@ -24,6 +25,7 @@ export default function ContributionCard({
   badges,
   visibleStats,
   onSelect,
+  onSignIn,
 }: ContributionCardProps) {
   const cardRef = useRef<HTMLElement>(null);
   const [avatarLoaded, setAvatarLoaded] = useState(false);
@@ -35,6 +37,12 @@ export default function ContributionCard({
     ? computeStreak(collection.contributionCalendar.weeks).current
     : 0;
   const hasStreak = currentStreak > 2;
+  const avatarUrl = result.data?.avatarUrl;
+
+  function handleSignIn(e: React.MouseEvent) {
+    e.stopPropagation();
+    onSignIn?.();
+  }
 
   function handleSelect() {
     if (cardRef.current && onSelect) {
@@ -59,12 +67,12 @@ export default function ContributionCard({
       {/* Header */}
       <div className="card-header flex items-center gap-2.5 mb-3">
         <div className="relative w-8 h-8 shrink-0">
-          {(!result.data || !avatarLoaded) && (
+          {(!avatarUrl || !avatarLoaded) && (
             <div className="absolute inset-0 rounded-full bg-gh-badge animate-pulse" />
           )}
-          {result.data && (
+          {avatarUrl && (
             <img
-              src={result.data.avatarUrl}
+              src={avatarUrl}
               alt={`${username}'s avatar`}
               className={`w-8 h-8 rounded-full transition-opacity duration-150 ${avatarLoaded ? "opacity-100" : "opacity-0"}`}
               onLoad={() => setAvatarLoaded(true)}
@@ -161,6 +169,16 @@ export default function ContributionCard({
         <>
           <Heatmap weeks={collection.contributionCalendar.weeks} />
           <StatsBar collection={collection} visibleStats={visibleStats} />
+          {result.needsAuth && onSignIn && (
+            <button
+              type="button"
+              onClick={handleSignIn}
+              data-export-hidden
+              className="mt-2 w-full text-center text-[11px] text-gh-text-secondary hover:text-gh-accent transition-colors cursor-pointer bg-transparent border-none p-1 rounded focus-visible:ring-2 focus-visible:ring-gh-accent"
+            >
+              Public activity only &mdash; sign in for full data
+            </button>
+          )}
         </>
       )}
     </Wrapper>

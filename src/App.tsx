@@ -169,6 +169,7 @@ export default function App() {
                 badges={badges[u] ?? []}
                 visibleStats={settings.visibleStats}
                 onSelect={(rect) => handleSelectUser(u, rect)}
+                onSignIn={auth.method === "none" ? auth.signIn : undefined}
               />
             ))}
           </div>

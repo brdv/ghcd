@@ -5,7 +5,8 @@ import {
   fetchPreviousPeriodTotal,
   fetchUserContributions,
   resolveOrgId,
-} from "./fetchContributions";
+} from "./fetchContributionsGraphQL";
+import { fetchUserPublic } from "./fetchContributionsPublic";
 import { useToast } from "./ToastContext";
 import type { UserResult } from "./types";
 import { useSortedUsers } from "./useSortedUsers";
@@ -20,7 +21,7 @@ interface UseContributionsParams {
   hasInitialUrlState: boolean;
 }
 
-export type FetchValidationError = "missing-pat" | "missing-users";
+export type FetchValidationError = "missing-users";
 export type FetchTrigger = "auto-refresh" | "date-preset" | "initial-url" | "manual" | "shortcut";
 
 export interface FetchAllOptions {
@@ -56,13 +57,155 @@ export function useContributions({
 
   const fetchAll = useCallback(
     async (options?: FetchAllOptions) => {
-      if (!pat) {
-        addToast(
-          "error",
-          "No authentication configured. Sign in with GitHub or add a Personal Access Token in settings.",
-        );
-        return "missing-pat" as const;
+      interface FetchContext {
+        users: string[];
+        from: string;
+        to: string;
+        periodDays: number;
+        prevFrom: string;
+        prevTo: string;
+        signal: AbortSignal;
+        trigger: FetchTrigger;
       }
+
+      async function fetchAllUnauthenticated(ctx: FetchContext) {
+        let errorCount = 0;
+        await Promise.all(
+          ctx.users.map(async (user) => {
+            try {
+              const data = await fetchUserPublic(user, { from: ctx.from, to: ctx.to }, ctx.signal);
+              if (ctx.signal.aborted) return;
+              setResults((r) => ({
+                ...r,
+                [user]: { data, needsAuth: true, periodDays: ctx.periodDays },
+              }));
+            } catch (e) {
+              if (ctx.signal.aborted) return;
+              errorCount++;
+              setResults((prev) => ({
+                ...prev,
+                [user]: { error: (e as Error).message },
+              }));
+            }
+          }),
+        );
+
+        if (ctx.signal.aborted) return;
+        setIsFetching(false);
+
+        requestAnimationFrame(() => {
+          if (ctx.signal.aborted) return;
+          if (errorCount > 0) {
+            captureAnalyticsEvent(posthog, analyticsEvents.dashboardFetchFailed, {
+              authenticated: false,
+              error_count: errorCount,
+              period_days: ctx.periodDays,
+              success_count: ctx.users.length - errorCount,
+              trigger: ctx.trigger,
+              user_count: ctx.users.length,
+            });
+            addToast(
+              "error",
+              `Failed to fetch data for ${errorCount} user${errorCount > 1 ? "s" : ""}. Check the cards for details.`,
+            );
+          } else {
+            captureAnalyticsEvent(posthog, analyticsEvents.dashboardFetchSucceeded, {
+              authenticated: false,
+              period_days: ctx.periodDays,
+              trigger: ctx.trigger,
+              user_count: ctx.users.length,
+            });
+            addToast(
+              "success",
+              `Showing public activity for ${ctx.users.length} user${ctx.users.length > 1 ? "s" : ""}. Sign in for full data.`,
+            );
+          }
+        });
+      }
+
+      async function fetchAllAuthenticated(ctx: FetchContext) {
+        // Resolve org ID
+        let orgId: string | null = null;
+        if (org) {
+          orgId = await resolveOrgId(pat, org, ctx.signal);
+          if (ctx.signal.aborted) return;
+          if (!orgId) {
+            addToast("warning", `Could not resolve org "${org}". Fetching without org filter.`);
+          }
+        }
+
+        // Fetch all users in parallel, then apply results in a single batch
+        // so cards and badges transition from skeleton to data simultaneously
+        let errorCount = 0;
+        const settled = await Promise.allSettled(
+          ctx.users.map(async (user) => {
+            const [data, previousPeriodTotal] = await Promise.all([
+              fetchUserContributions(
+                pat,
+                user,
+                { orgId, from: ctx.from, to: ctx.to },
+                ctx.signal,
+              ),
+              fetchPreviousPeriodTotal(
+                pat,
+                user,
+                { orgId, from: ctx.prevFrom, to: ctx.prevTo },
+                ctx.signal,
+              ),
+            ]);
+            return { user, data, previousPeriodTotal };
+          }),
+        );
+
+        if (ctx.signal.aborted) return;
+
+        const batch: Record<string, UserResult> = {};
+        for (let i = 0; i < ctx.users.length; i++) {
+          const result = settled[i];
+          if (result.status === "fulfilled") {
+            const { data, previousPeriodTotal } = result.value;
+            batch[ctx.users[i]] = { data, previousPeriodTotal, periodDays: ctx.periodDays };
+          } else {
+            errorCount++;
+            batch[ctx.users[i]] = { error: result.reason?.message ?? String(result.reason) };
+          }
+        }
+        setResults((prev) => ({ ...prev, ...batch }));
+        setIsFetching(false);
+
+        // Defer toast so the card transitions settle before triggering another render
+        requestAnimationFrame(() => {
+          if (ctx.signal.aborted) return;
+          if (errorCount > 0) {
+            captureAnalyticsEvent(posthog, analyticsEvents.dashboardFetchFailed, {
+              authenticated: true,
+              error_count: errorCount,
+              has_org: Boolean(org),
+              period_days: ctx.periodDays,
+              success_count: ctx.users.length - errorCount,
+              trigger: ctx.trigger,
+              user_count: ctx.users.length,
+            });
+            addToast(
+              "error",
+              `Failed to fetch data for ${errorCount} user${errorCount > 1 ? "s" : ""}. Check the cards for details.`,
+            );
+          } else {
+            captureAnalyticsEvent(posthog, analyticsEvents.dashboardFetchSucceeded, {
+              authenticated: true,
+              has_org: Boolean(org),
+              period_days: ctx.periodDays,
+              trigger: ctx.trigger,
+              user_count: ctx.users.length,
+            });
+            addToast(
+              "success",
+              `Fetched contributions for ${ctx.users.length} user${ctx.users.length > 1 ? "s" : ""}.`,
+            );
+          }
+        });
+      }
+
       if (!users.length) {
         addToast("error", "No users configured. Open settings to add usernames.");
         return "missing-users" as const;
@@ -97,86 +240,48 @@ export function useContributions({
         return next;
       });
 
-      // Resolve org ID
-      let orgId: string | null = null;
-      if (org) {
-        orgId = await resolveOrgId(pat, org, signal);
-        if (signal.aborted) return;
-        if (!orgId) {
-          addToast("warning", `Could not resolve org "${org}". Fetching without org filter.`);
-        }
+      const ctx: FetchContext = {
+        users,
+        from,
+        to,
+        periodDays,
+        prevFrom,
+        prevTo,
+        signal,
+        trigger,
+      };
+
+      if (pat) {
+        await fetchAllAuthenticated(ctx);
+      } else {
+        await fetchAllUnauthenticated(ctx);
       }
-
-      // Fetch all users in parallel, then apply results in a single batch
-      // so cards and badges transition from skeleton to data simultaneously
-      let errorCount = 0;
-      const settled = await Promise.allSettled(
-        users.map(async (user) => {
-          const [data, previousPeriodTotal] = await Promise.all([
-            fetchUserContributions(pat, user, { orgId, from, to }, signal),
-            fetchPreviousPeriodTotal(pat, user, { orgId, from: prevFrom, to: prevTo }, signal),
-          ]);
-          return { user, data, previousPeriodTotal };
-        }),
-      );
-
-      if (signal.aborted) return;
-
-      const batch: Record<string, UserResult> = {};
-      for (let i = 0; i < users.length; i++) {
-        const result = settled[i];
-        if (result.status === "fulfilled") {
-          const { data, previousPeriodTotal } = result.value;
-          batch[users[i]] = { data, previousPeriodTotal, periodDays };
-        } else {
-          errorCount++;
-          batch[users[i]] = { error: result.reason?.message ?? String(result.reason) };
-        }
-      }
-      setResults((prev) => ({ ...prev, ...batch }));
-      setIsFetching(false);
-
-      // Defer toast so the card transitions settle before triggering another render
-      requestAnimationFrame(() => {
-        if (signal.aborted) return;
-        if (errorCount > 0) {
-          captureAnalyticsEvent(posthog, analyticsEvents.dashboardFetchFailed, {
-            error_count: errorCount,
-            has_org: Boolean(org),
-            period_days: periodDays,
-            success_count: users.length - errorCount,
-            trigger,
-            user_count: users.length,
-          });
-          addToast(
-            "error",
-            `Failed to fetch data for ${errorCount} user${errorCount > 1 ? "s" : ""}. Check the cards for details.`,
-          );
-        } else {
-          captureAnalyticsEvent(posthog, analyticsEvents.dashboardFetchSucceeded, {
-            has_org: Boolean(org),
-            period_days: periodDays,
-            trigger,
-            user_count: users.length,
-          });
-          addToast(
-            "success",
-            `Fetched contributions for ${users.length} user${users.length > 1 ? "s" : ""}.`,
-          );
-        }
-      });
     },
     [addToast, fromDate, org, pat, posthog, toDate, users],
   );
 
   const fetchUser = useCallback(
     async (username: string) => {
-      if (!pat) return;
+      setResults((prev) => ({ ...prev, [username]: { ...prev[username], loading: true } }));
+
+      if (!pat) {
+        // Unauthenticated: fetch public profile + events via REST
+        try {
+          const from = new Date(fromDate).toISOString();
+          const to = new Date(toDate).toISOString();
+          const data = await fetchUserPublic(username, { from, to });
+          setResults((prev) => ({ ...prev, [username]: { data, needsAuth: true } }));
+        } catch (e) {
+          setResults((prev) => ({
+            ...prev,
+            [username]: { error: (e as Error).message },
+          }));
+        }
+        return;
+      }
 
       const from = new Date(fromDate).toISOString();
       const to = new Date(toDate).toISOString();
-
-      setResults((prev) => ({ ...prev, [username]: { ...prev[username], loading: true } }));
 
       const orgId = org ? await resolveOrgId(pat, org) : null;
 
