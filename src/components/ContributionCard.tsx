@@ -42,7 +42,7 @@ export default function ContributionCard({
     }
   }
 
-  const sharedClass = `bg-gh-card rounded-xl px-5 py-4 transition-colors duration-150 w-full text-left ${
+  const sharedClass = `contribution-card bg-gh-card rounded-xl px-5 py-4 transition-colors duration-150 w-full text-left ${
     hasStreak ? "streak-glow border border-transparent" : "border border-gh-border"
   }`;
 
@@ -57,7 +57,7 @@ export default function ContributionCard({
       onClick={isClickable ? handleSelect : undefined}
     >
       {/* Header */}
-      <div className="flex items-center gap-2.5 mb-3">
+      <div className="card-header flex items-center gap-2.5 mb-3">
         <div className="relative w-8 h-8 shrink-0">
           {(!result.data || !avatarLoaded) && (
             <div className="absolute inset-0 rounded-full bg-gh-badge animate-pulse" />
@@ -71,7 +71,7 @@ export default function ContributionCard({
             />
           )}
         </div>
-        <div className="flex items-center justify-between w-full">
+        <div className="card-header-content flex items-center justify-between w-full">
           <span className="font-semibold text-[15px]">
             {username}
             {hasStreak && (
@@ -85,9 +85,12 @@ export default function ContributionCard({
             )}
           </span>
           {totalContributions != null ? (
-            <div className="flex items-center gap-2 ml-2">
+            <div className="card-header-stats flex items-center gap-2 ml-2">
               <span className="text-gh-text-secondary text-xs font-bold">
-                {totalContributions} contributions
+                <span className="card-header-contributions-label">
+                  {totalContributions} contributions
+                </span>
+                <span className="card-header-contributions-short">{totalContributions}</span>
               </span>
               {velocity && velocity.percentage !== 0 && (
                 <VelocityBadge velocity={velocity} periodDays={result.periodDays} />
