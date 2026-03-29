@@ -29,7 +29,7 @@ interface HeatmapProps {
   weeks: ContributionWeek[];
 }
 
-export default function Heatmap({ weeks }: HeatmapProps) {
+export default function Heatmap({ weeks: rawWeeks }: HeatmapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const isTouchRef = useRef(false);
@@ -39,6 +39,18 @@ export default function Heatmap({ weeks }: HeatmapProps) {
     svgOffsetY: number;
   } | null>(null);
   const descId = useId();
+
+  // Trim trailing weeks where every day is in the future
+  const weeks = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    let lastIdx = rawWeeks.length;
+    while (lastIdx > 0) {
+      const week = rawWeeks[lastIdx - 1];
+      if (week.contributionDays.some((d) => d.date <= today)) break;
+      lastIdx--;
+    }
+    return rawWeeks.slice(0, lastIdx);
+  }, [rawWeeks]);
 
   const width = LABEL_WIDTH + weeks.length * (CELL_SIZE + GAP);
   const height = 7 * (CELL_SIZE + GAP) + 20;
@@ -122,8 +134,6 @@ export default function Heatmap({ weeks }: HeatmapProps) {
       y: svgOffsetY + (24 + wd * (CELL_SIZE + GAP)) * scale - 6,
     };
   }, []);
-
-
 
   const handleMouseEnter = useCallback(() => {
     isTouchRef.current = false;
