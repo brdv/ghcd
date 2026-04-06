@@ -170,14 +170,16 @@ export default function ContributionCard({
           <Heatmap weeks={collection.contributionCalendar.weeks} />
           <StatsBar collection={collection} visibleStats={visibleStats} />
           {result.needsAuth && onSignIn && (
-            <button
-              type="button"
+            <span
+              role="link"
+              tabIndex={0}
               onClick={handleSignIn}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleSignIn(e as unknown as React.MouseEvent); }}
               data-export-hidden
-              className="mt-2 w-full text-center text-[11px] text-gh-text-secondary hover:text-gh-accent transition-colors cursor-pointer bg-transparent border-none p-1 rounded focus-visible:ring-2 focus-visible:ring-gh-accent"
+              className="mt-2 block w-full text-center text-[11px] text-gh-text-secondary hover:text-gh-accent transition-colors cursor-pointer p-1 rounded focus-visible:ring-2 focus-visible:ring-gh-accent"
             >
-              Public activity only &mdash; sign in for full data
-            </button>
+              Public activity only — sign in for full data
+            </span>
           )}
         </>
       )}

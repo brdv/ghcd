@@ -1,21 +1,23 @@
 import { usePostHog } from "@posthog/react";
 import { useState } from "react";
-import { analyticsEvents, captureAnalyticsEvent } from "../lib/analytics";
-import { fetchOrgMembers } from "../lib/githubGraphQL";
-import { ALL_STATS } from "../lib/stats";
-import { useToast } from "../lib/ToastContext";
-import type { FetchAllOptions } from "../lib/useContributions";
-import { useDialogBehavior } from "../lib/useDialogBehavior";
-import type { UseSettingsReturn } from "../lib/useSettings";
-import AuthSection from "./AuthSection";
-import DatePresets from "./DatePresets";
-import PillButton from "./PillButton";
-import UserChip from "./UserChip";
+import { analyticsEvents, captureAnalyticsEvent } from "../../lib/analytics";
+import { fetchOrgMembers } from "../../lib/githubGraphQL";
+import { ALL_STATS } from "../../lib/stats";
+import { useToast } from "../../lib/ToastContext";
+import type { FetchAllOptions } from "../../lib/useContributions";
+import { useDialogBehavior } from "../../lib/useDialogBehavior";
+import type { UseSettingsReturn } from "../../lib/useSettings";
+import AuthSection from "../AuthSection";
+import DatePresets from "../DatePresets";
+import PillButton from "../PillButton";
+import UserChip from "../UserChip";
+import OrganisationInput from "./OrganisationInput";
 
 const inputClass =
   "px-3 py-2 rounded-lg border border-gh-border bg-gh-card text-gh-text-primary text-base outline-none focus:border-gh-accent focus-visible:ring-2 focus-visible:ring-gh-accent focus-visible:ring-offset-1 focus-visible:ring-offset-gh-bg";
 
 const sectionLabel = "text-xs text-gh-text-secondary font-medium uppercase tracking-wider";
+
 const sectionDivider = "border-t border-gh-border";
 
 const REFRESH_OPTIONS = [
@@ -228,13 +230,12 @@ export default function SettingsDrawer({
               <label htmlFor="org-input" className={sectionLabel}>
                 Organization
               </label>
-              <input
-                id="org-input"
-                value={org}
-                onChange={(e) => setOrg(e.target.value)}
-                placeholder={token ? "Optional — filter by org" : "Sign in to filter by org"}
-                disabled={!token}
-                className={`${inputClass} w-full ${!token ? "opacity-50" : ""}`}
+              <OrganisationInput
+                className={inputClass}
+                organisation={org}
+                onChange={setOrg}
+                token={token}
+                onSignIn={onSignIn}
               />
             </div>
 
