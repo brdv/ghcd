@@ -37,6 +37,17 @@ function decodeState(encoded: string): UrlState | null {
   }
 }
 
+const STORAGE_KEY = "ghcd-settings";
+
+function readStateFromStorage(): UrlState | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? decodeState(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 function readStateFromUrl(): UrlState | null {
   const params = new URLSearchParams(window.location.search);
   const s = params.get("state");
@@ -62,7 +73,7 @@ export interface UseSettingsReturn {
 }
 
 export function useSettings(): UseSettingsReturn {
-  const [initial] = useState(() => readStateFromUrl());
+  const [initial] = useState(() => readStateFromUrl() ?? readStateFromStorage());
 
   const [rawPat, setRawPat] = useState(() => localStorage.getItem("ghcd-pat") ?? "");
   const [rawOrg, setRawOrg] = useState(() => initial?.org ?? "");
@@ -101,6 +112,12 @@ export function useSettings(): UseSettingsReturn {
       url.searchParams.delete("state");
     }
     window.history.replaceState(null, "", url.toString());
+
+    if (Object.keys(state).length > 0) {
+      localStorage.setItem(STORAGE_KEY, encodeState(state));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
   }, [users, org, fromDate, toDate, visibleStats]);
 
   return {
