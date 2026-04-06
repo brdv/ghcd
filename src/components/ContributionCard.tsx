@@ -16,6 +16,7 @@ interface ContributionCardProps {
   badges: Badge[];
   visibleStats: string[];
   onSelect?: (rect: DOMRect) => void;
+  onSignIn?: () => void;
 }
 
 export default function ContributionCard({
@@ -24,6 +25,7 @@ export default function ContributionCard({
   badges,
   visibleStats,
   onSelect,
+  onSignIn,
 }: ContributionCardProps) {
   const cardRef = useRef<HTMLElement>(null);
   const [avatarLoaded, setAvatarLoaded] = useState(false);
@@ -35,6 +37,12 @@ export default function ContributionCard({
     ? computeStreak(collection.contributionCalendar.weeks).current
     : 0;
   const hasStreak = currentStreak > 2;
+  const avatarUrl = result.data?.avatarUrl;
+
+  function handleSignIn(e: React.MouseEvent) {
+    e.stopPropagation();
+    onSignIn?.();
+  }
 
   function handleSelect() {
     if (cardRef.current && onSelect) {
@@ -49,121 +57,133 @@ export default function ContributionCard({
   const Wrapper = isClickable ? "button" : "div";
 
   return (
-    <Wrapper
-      ref={cardRef as React.Ref<HTMLButtonElement & HTMLDivElement>}
-      type={isClickable ? "button" : undefined}
-      aria-label={isClickable ? `View details for ${username}` : undefined}
-      className={`${sharedClass} ${isClickable ? "cursor-pointer hover:border-gh-accent/50" : ""}`}
-      onClick={isClickable ? handleSelect : undefined}
-    >
-      {/* Header */}
-      <div className="card-header flex items-center gap-2.5 mb-3">
-        <div className="relative w-8 h-8 shrink-0">
-          {(!result.data || !avatarLoaded) && (
-            <div className="absolute inset-0 rounded-full bg-gh-badge animate-pulse" />
-          )}
-          {result.data && (
-            <img
-              src={result.data.avatarUrl}
-              alt={`${username}'s avatar`}
-              className={`w-8 h-8 rounded-full transition-opacity duration-150 ${avatarLoaded ? "opacity-100" : "opacity-0"}`}
-              onLoad={() => setAvatarLoaded(true)}
-            />
-          )}
-        </div>
-        <div className="card-header-content flex items-center justify-between w-full">
-          <span className="font-semibold text-[15px]">
-            {username}
-            {hasStreak && (
-              <span
-                className="ml-1 text-[13px]"
-                role="img"
-                aria-label={`${currentStreak} day streak`}
-              >
-                🔥
-              </span>
+    <div className="flex flex-col">
+      <Wrapper
+        ref={cardRef as React.Ref<HTMLButtonElement & HTMLDivElement>}
+        type={isClickable ? "button" : undefined}
+        aria-label={isClickable ? `View details for ${username}` : undefined}
+        className={`${sharedClass} ${isClickable ? "cursor-pointer hover:border-gh-accent/50" : ""}`}
+        onClick={isClickable ? handleSelect : undefined}
+      >
+        {/* Header */}
+        <div className="card-header flex items-center gap-2.5 mb-3">
+          <div className="relative w-8 h-8 shrink-0">
+            {(!avatarUrl || !avatarLoaded) && (
+              <div className="absolute inset-0 rounded-full bg-gh-badge animate-pulse" />
             )}
-          </span>
-          {totalContributions != null ? (
-            <div className="card-header-stats flex items-center gap-2 ml-2">
-              <span className="text-gh-text-secondary text-xs font-bold">
-                <span className="card-header-contributions-label">
-                  {totalContributions} contributions
+            {avatarUrl && (
+              <img
+                src={avatarUrl}
+                alt={`${username}'s avatar`}
+                className={`w-8 h-8 rounded-full transition-opacity duration-150 ${avatarLoaded ? "opacity-100" : "opacity-0"}`}
+                onLoad={() => setAvatarLoaded(true)}
+              />
+            )}
+          </div>
+          <div className="card-header-content flex items-center justify-between w-full">
+            <span className="font-semibold text-[15px]">
+              {username}
+              {hasStreak && (
+                <span
+                  className="ml-1 text-[13px]"
+                  role="img"
+                  aria-label={`${currentStreak} day streak`}
+                >
+                  🔥
                 </span>
-                <span className="card-header-contributions-short">{totalContributions}</span>
-              </span>
-              {velocity && velocity.percentage !== 0 && (
-                <VelocityBadge velocity={velocity} periodDays={result.periodDays} />
               )}
-            </div>
-          ) : result.loading ? (
-            <div className="h-3 w-24 bg-gh-badge/50 rounded animate-pulse ml-2" />
-          ) : null}
+            </span>
+            {totalContributions != null ? (
+              <div className="card-header-stats flex items-center gap-2 ml-2">
+                <span className="text-gh-text-secondary text-xs font-bold">
+                  <span className="card-header-contributions-label">
+                    {totalContributions} contributions
+                  </span>
+                  <span className="card-header-contributions-short">{totalContributions}</span>
+                </span>
+                {velocity && velocity.percentage !== 0 && (
+                  <VelocityBadge velocity={velocity} periodDays={result.periodDays} />
+                )}
+              </div>
+            ) : result.loading ? (
+              <div className="h-3 w-24 bg-gh-badge/50 rounded animate-pulse ml-2" />
+            ) : null}
+          </div>
         </div>
-      </div>
 
-      {/* Badges */}
-      <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-hide min-h-[22px]">
-        {badges.length > 0
-          ? badges.map((b) => (
-              <span
-                key={b.id}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gh-badge text-[11px] text-gh-text-secondary border border-gh-border shrink-0"
-                role="img"
-                aria-label={b.tooltip}
-              >
-                <BadgeIcon icon={b.icon} />
-                {b.label}
-              </span>
-            ))
-          : result.loading
-            ? ["badge-sk-1", "badge-sk-2", "badge-sk-3"].map((key) => (
+        {/* Badges */}
+        <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-hide min-h-[22px]">
+          {badges.length > 0
+            ? badges.map((b) => (
+                <span
+                  key={b.id}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gh-badge text-[11px] text-gh-text-secondary border border-gh-border shrink-0"
+                  role="img"
+                  aria-label={b.tooltip}
+                >
+                  <BadgeIcon icon={b.icon} />
+                  {b.label}
+                </span>
+              ))
+            : result.loading
+              ? ["badge-sk-1", "badge-sk-2", "badge-sk-3"].map((key) => (
+                  <div
+                    key={key}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gh-badge/50 border border-gh-border/50 h-[22px] w-16"
+                  />
+                ))
+              : null}
+        </div>
+
+        {/* Body */}
+        {result.loading && !collection && (
+          <div className="animate-pulse">
+            {/* Heatmap skeleton — matches SVG aspect ratio (7 rows × 16px + 20px top) */}
+            <div className="overflow-hidden mb-3.5">
+              <div className="w-full" style={{ aspectRatio: "880 / 132" }}>
+                <div className="w-full h-full bg-gh-badge/50 rounded-md" />
+              </div>
+            </div>
+            {/* Stats skeleton */}
+            <div className="flex gap-2 justify-center">
+              {Array.from(
+                { length: visibleStats.length || ALL_STATS.length },
+                (_, i) => `stat-sk-${i}`,
+              ).map((key) => (
                 <div
                   key={key}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gh-badge/50 border border-gh-border/50 h-[22px] w-16"
-                />
-              ))
-            : null}
-      </div>
-
-      {/* Body */}
-      {result.loading && !collection && (
-        <div className="animate-pulse">
-          {/* Heatmap skeleton — matches SVG aspect ratio (7 rows × 16px + 20px top) */}
-          <div className="overflow-hidden mb-3.5">
-            <div className="w-full" style={{ aspectRatio: "880 / 132" }}>
-              <div className="w-full h-full bg-gh-badge/50 rounded-md" />
+                  className="flex flex-col items-center px-2 sm:px-3.5 py-2 rounded-lg bg-gh-badge/50 flex-1 min-w-0"
+                >
+                  <div className="h-7 w-8 bg-gh-badge rounded mb-0.5" />
+                  <div className="h-3 w-12 bg-gh-badge rounded" />
+                </div>
+              ))}
             </div>
           </div>
-          {/* Stats skeleton */}
-          <div className="flex gap-2 justify-center">
-            {Array.from(
-              { length: visibleStats.length || ALL_STATS.length },
-              (_, i) => `stat-sk-${i}`,
-            ).map((key) => (
-              <div
-                key={key}
-                className="flex flex-col items-center px-2 sm:px-3.5 py-2 rounded-lg bg-gh-badge/50 flex-1 min-w-0"
-              >
-                <div className="h-7 w-8 bg-gh-badge rounded mb-0.5" />
-                <div className="h-3 w-12 bg-gh-badge rounded" />
-              </div>
-            ))}
+        )}
+        {result.error && (
+          <div role="alert" className="text-gh-danger text-[13px] py-3">
+            {result.error}
           </div>
-        </div>
+        )}
+        {collection && (
+          <>
+            <Heatmap weeks={collection.contributionCalendar.weeks} />
+            <StatsBar collection={collection} visibleStats={visibleStats} />
+          </>
+        )}
+      </Wrapper>
+      {result.needsAuth && onSignIn && (
+        <button
+          type="button"
+          onClick={handleSignIn}
+          data-export-hidden
+          className="mt-2 block w-full text-center text-[11px] text-gh-text-secondary hover:text-gh-accent transition-colors cursor-pointer p-1 rounded focus-visible:ring-2 focus-visible:ring-gh-accent"
+        >
+          Public activity only — sign in for full data
+        </button>
       )}
-      {result.error && (
-        <div role="alert" className="text-gh-danger text-[13px] py-3">
-          {result.error}
-        </div>
-      )}
-      {collection && (
-        <>
-          <Heatmap weeks={collection.contributionCalendar.weeks} />
-          <StatsBar collection={collection} visibleStats={visibleStats} />
-        </>
-      )}
-    </Wrapper>
+    </div>
   );
 }
 

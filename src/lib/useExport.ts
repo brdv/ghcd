@@ -36,6 +36,8 @@ export function useExport(elementSelector: string, userCount: number) {
           pixelRatio: 2,
           backgroundColor: bg,
           width: snugWidth,
+          filter: (node) =>
+            !(node instanceof HTMLElement && node.hasAttribute("data-export-hidden")),
         });
       } finally {
         // no DOM cleanup needed — we only read measurements

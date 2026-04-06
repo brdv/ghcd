@@ -1,4 +1,4 @@
-import { gql, QUERY_ORG, QUERY_USER, QUERY_USER_TOTAL } from "./github";
+import { gql, QUERY_ORG, QUERY_USER, QUERY_USER_TOTAL } from "./githubGraphQL";
 import type { GitHubUser } from "./types";
 
 export async function resolveOrgId(
