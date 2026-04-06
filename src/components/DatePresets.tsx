@@ -23,10 +23,10 @@ export default function DatePresets({
   onSelect,
 }: DatePresetsProps) {
   const presets = getDatePresets();
-  const initialPreset = presets.find((p) => fromDate === p.from && toDate === p.to);
-  const [active, setActive] = useState<DatePresetId>(
-    (initialPreset?.id as DatePresetId) ?? "custom",
-  );
+  const matchedPreset = presets.find((p) => fromDate === p.from && toDate === p.to);
+  const derived = (matchedPreset?.id as DatePresetId) ?? "custom";
+  const [showCustom, setShowCustom] = useState(derived === "custom");
+  const active = showCustom ? "custom" : derived;
 
   return (
     <div className="flex flex-col gap-2">
@@ -36,7 +36,7 @@ export default function DatePresets({
             key={p.id}
             active={active === p.id}
             onClick={() => {
-              setActive(p.id);
+              setShowCustom(false);
               setFromDate(p.from);
               setToDate(p.to);
               onSelect?.(p.from, p.to);
@@ -45,7 +45,7 @@ export default function DatePresets({
             {p.label}
           </PillButton>
         ))}
-        <PillButton active={active === "custom"} onClick={() => setActive("custom")}>
+        <PillButton active={active === "custom"} onClick={() => setShowCustom(true)}>
           Custom
         </PillButton>
       </div>
