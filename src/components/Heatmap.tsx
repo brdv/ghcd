@@ -48,28 +48,16 @@ interface ILayout {
 /**
  * GitHub-style contribution heatmap rendered as an SVG grid.
  *
- * Weeks that are entirely in the future are trimmed. Cells are colored
- * by contribution quartile using CSS custom properties for theme support.
- * Supports mouse hover, touch tap (toggle), click, and keyboard interaction
- * for tooltip display.
+ * Cells are colored by contribution quartile using CSS custom properties
+ * for theme support. Supports mouse hover, touch tap (toggle), click,
+ * and keyboard interaction for tooltip display.
  */
-export default function Heatmap({ weeks: allWeeks }: HeatmapProps) {
+export default function Heatmap({ weeks }: HeatmapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const isTouchRef = useRef(false); // Guards against mouse events firing after touch events on hybrid devices.
   const layoutRef = useRef<ILayout | null>(null);
   const descId = useId();
-
-  const weeks = useMemo(() => {
-    const today = new Date().toISOString().split("T")[0];
-    let lastIdx = allWeeks.length;
-    while (lastIdx > 0) {
-      const week = allWeeks[lastIdx - 1];
-      if (week.contributionDays.some((d) => d.date <= today)) break;
-      lastIdx--;
-    }
-    return allWeeks.slice(0, lastIdx);
-  }, [allWeeks]);
 
   const width = LABEL_WIDTH + weeks.length * (CELL_SIZE + GAP);
   const height = 7 * (CELL_SIZE + GAP) + 20;
