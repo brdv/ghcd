@@ -140,12 +140,7 @@ export function useContributions({
         const settled = await Promise.allSettled(
           ctx.users.map(async (user) => {
             const [data, previousPeriodTotal] = await Promise.all([
-              fetchUserContributions(
-                pat,
-                user,
-                { orgId, from: ctx.from, to: ctx.to },
-                ctx.signal,
-              ),
+              fetchUserContributions(pat, user, { orgId, from: ctx.from, to: ctx.to }, ctx.signal),
               fetchPreviousPeriodTotal(
                 pat,
                 user,
