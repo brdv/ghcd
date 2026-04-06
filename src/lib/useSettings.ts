@@ -10,8 +10,15 @@ interface UrlState {
   stats?: string[];
 }
 
-const DEFAULT_FROM_DATE = `${new Date().getFullYear()}-01-01`;
-const DEFAULT_TO_DATE = `${new Date().getFullYear()}-12-31`;
+function computeDefaults() {
+  const now = new Date();
+  const yearAgo = new Date(now);
+  yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+  const fmt = (d: Date) => d.toISOString().split("T")[0];
+  return { from: fmt(yearAgo), to: fmt(now) };
+}
+
+const { from: DEFAULT_FROM_DATE, to: DEFAULT_TO_DATE } = computeDefaults();
 
 function encodeState(state: UrlState): string {
   return btoa(JSON.stringify(state));
